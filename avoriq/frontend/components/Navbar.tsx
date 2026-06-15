@@ -3,14 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, GraduationCap, ArrowRight } from "lucide-react";
+import { Menu, X, GraduationCap, ArrowRight, User, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { siteContent } from "../data/siteContent";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const [authToken, setAuthToken] = useLocalStorage<string | null>("avoriq_auth_token", null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,18 +80,34 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
-            <Link href="/scholarships">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-accent-blue to-accent-purple hover:opacity-95 shadow-md shadow-accent-blue/10 overflow-hidden cursor-pointer"
-              >
-                Get Started
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
-            </Link>
+          {/* CTA / Auth Button */}
+          <div className="hidden md:flex items-center gap-3">
+            {authToken ? (
+              <>
+                <Link href="/scholarships" className="text-slate-300 hover:text-white text-sm font-semibold transition-colors">
+                  Dashboard
+                </Link>
+                <div className="h-4 w-px bg-white/20 mx-1" />
+                <button
+                  onClick={() => setAuthToken(null)}
+                  className="flex items-center gap-1.5 text-slate-400 hover:text-rose-400 text-sm font-semibold transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link href="/login">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-accent-blue to-accent-purple hover:opacity-95 shadow-md shadow-accent-blue/10 overflow-hidden cursor-pointer"
+                >
+                  Sign In
+                  <ArrowRight className="w-4 h-4" />
+                </motion.button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -133,13 +151,31 @@ export default function Navbar() {
                   </Link>
                 );
               })}
-              <div className="pt-4 pb-2 px-4 border-t border-white/5">
-                <Link href="/scholarships" onClick={() => setIsOpen(false)}>
-                  <button className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-accent-blue to-accent-purple shadow-lg shadow-accent-blue/20">
-                    Get Started
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </Link>
+              <div className="pt-4 pb-2 px-4 border-t border-white/5 space-y-3">
+                {authToken ? (
+                  <>
+                    <Link href="/scholarships" onClick={() => setIsOpen(false)} className="block text-center w-full py-3 rounded-xl text-base font-semibold text-white bg-white/5">
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setAuthToken(null);
+                        setIsOpen(false);
+                      }}
+                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-rose-400 bg-rose-500/10"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link href="/login" onClick={() => setIsOpen(false)}>
+                    <button className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-accent-blue to-accent-purple shadow-lg shadow-accent-blue/20">
+                      Sign In
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>

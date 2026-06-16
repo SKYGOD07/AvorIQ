@@ -5,7 +5,7 @@ import { User, Sparkles, LogIn, Send, Loader2, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Scholarship } from "../types/scholarship";
-import { mockScholarships } from "../data/scholarships";
+import { mockScholarships, indianStates } from "../data/scholarships";
 import ScholarshipCard from "./ScholarshipCard";
 import { useChatLimit } from "../hooks/useChatLimit";
 
@@ -34,6 +34,15 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
+    }
+  }, [inputValue]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,14 +50,119 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
 
   const parseAndMatch = (query: string): Scholarship[] => {
     const q = query.toLowerCase();
+    
+    // Check if the query is a simple greeting
+    const greetings = ["hi", "hello", "hey", "hola", "greetings", "good morning", "good afternoon", "good evening"];
+    const isGreetingOnly = greetings.some(g => q.trim() === g || q.trim().startsWith(g + " "));
+    if (isGreetingOnly) {
+      return [];
+    }
+
     let matched = mockScholarships;
-    if (q.includes("girl") || q.includes("female")) {
+    let filterApplied = false;
+
+    // Filter by Gender
+    if (q.includes("girl") || q.includes("female") || q.includes("women") || q.includes("girl's") || q.includes("girls")) {
       matched = matched.filter((s) => s.eligibility.gender === "Female" || s.eligibility.gender === "All");
+      filterApplied = true;
+    } else if (q.includes("boy") || q.includes("male") || q.includes("boys")) {
+      matched = matched.filter((s) => s.eligibility.gender === "All");
+      filterApplied = true;
     }
-    if (q.includes("engineer") || q.includes("btech")) {
+
+    // Filter by Field of Study
+    if (q.includes("engineer") || q.includes("btech") || q.includes("engineering") || q.includes("tech") || q.includes("computer")) {
       matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Engineering") || s.eligibility.fieldsOfStudy.includes("All"));
+      filterApplied = true;
+    } else if (q.includes("medical") || q.includes("mbbs") || q.includes("doctor") || q.includes("dental") || q.includes("nursing") || q.includes("healthcare")) {
+      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Medical") || s.eligibility.fieldsOfStudy.includes("All"));
+      filterApplied = true;
+    } else if (q.includes("science") || q.includes("bsc") || q.includes("msc") || q.includes("stem")) {
+      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Science") || s.eligibility.fieldsOfStudy.includes("All"));
+      filterApplied = true;
+    } else if (q.includes("commerce") || q.includes("bcom") || q.includes("mcom") || q.includes("account")) {
+      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Commerce") || s.eligibility.fieldsOfStudy.includes("All"));
+      filterApplied = true;
+    } else if (q.includes("arts") || q.includes("humanities") || q.includes("ba") || q.includes("ma")) {
+      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Arts") || s.eligibility.fieldsOfStudy.includes("All"));
+      filterApplied = true;
+    } else if (q.includes("management") || q.includes("mba") || q.includes("bba") || q.includes("business")) {
+      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Management") || s.eligibility.fieldsOfStudy.includes("All"));
+      filterApplied = true;
+    } else if (q.includes("law") || q.includes("llb") || q.includes("legal")) {
+      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Law") || s.eligibility.fieldsOfStudy.includes("All"));
+      filterApplied = true;
     }
-    return matched.slice(0, 2);
+
+    // Filter by Education Level
+    if (q.includes("postgrad") || q.includes("postgraduate") || q.includes("pg") || q.includes("master") || q.includes("phd") || q.includes("mtech") || q.includes("mba")) {
+      matched = matched.filter((s) => s.eligibility.educationLevel.includes("PG"));
+      filterApplied = true;
+    } else if (q.includes("undergrad") || q.includes("undergraduate") || q.includes("ug") || q.includes("bachelor") || q.includes("btech") || q.includes("bsc") || q.includes("bcom") || q.includes("mbbs")) {
+      matched = matched.filter((s) => s.eligibility.educationLevel.includes("UG"));
+      filterApplied = true;
+    } else if (q.includes("diploma")) {
+      matched = matched.filter((s) => s.eligibility.educationLevel.includes("Diploma"));
+      filterApplied = true;
+    } else if (q.includes("school") || q.includes("class 6") || q.includes("class 7") || q.includes("class 8") || q.includes("class 9") || q.includes("class 10") || q.includes("middle school")) {
+      matched = matched.filter((s) => s.eligibility.educationLevel.includes("Class 6–10"));
+      filterApplied = true;
+    } else if (q.includes("class 11") || q.includes("class 12") || q.includes("high school") || q.includes("puc") || q.includes("junior college")) {
+      matched = matched.filter((s) => s.eligibility.educationLevel.includes("Class 11–12"));
+      filterApplied = true;
+    }
+
+    // Filter by Category
+    if (q.includes("govt") || q.includes("government") || q.includes("ministry") || q.includes("state")) {
+      matched = matched.filter((s) => s.category === "Government");
+      filterApplied = true;
+    } else if (q.includes("private") || q.includes("bank") || q.includes("company") || q.includes("corporate")) {
+      matched = matched.filter((s) => s.category === "Private");
+      filterApplied = true;
+    } else if (q.includes("ngo") || q.includes("trust") || q.includes("foundation")) {
+      matched = matched.filter((s) => s.category === "NGO" || s.category === "Private");
+      filterApplied = true;
+    } else if (q.includes("international") || q.includes("abroad") || q.includes("uk") || q.includes("study abroad") || q.includes("foreign")) {
+      matched = matched.filter((s) => s.category === "International");
+      filterApplied = true;
+    }
+
+    // Filter by Caste / Category
+    if (q.includes("general") || q.includes("open")) {
+      matched = matched.filter((s) => s.eligibility.castes.includes("General"));
+      filterApplied = true;
+    } else if (q.includes("obc")) {
+      matched = matched.filter((s) => s.eligibility.castes.includes("OBC"));
+      filterApplied = true;
+    } else if (q.includes("sc")) {
+      matched = matched.filter((s) => s.eligibility.castes.includes("SC"));
+      filterApplied = true;
+    } else if (q.includes("st")) {
+      matched = matched.filter((s) => s.eligibility.castes.includes("ST"));
+      filterApplied = true;
+    } else if (q.includes("ews")) {
+      matched = matched.filter((s) => s.eligibility.castes.includes("EWS"));
+      filterApplied = true;
+    }
+
+    // Filter by specific state names
+    const matchedState = indianStates.find(state => q.includes(state.toLowerCase()));
+    if (matchedState) {
+      matched = matched.filter(s => s.eligibility.states.includes("All") || s.eligibility.states.includes(matchedState));
+      filterApplied = true;
+    }
+
+    if (filterApplied) {
+      return matched;
+    }
+
+    // If query contains general words indicating they are looking for general scholarships
+    const isSeekingGeneral = q.includes("scholarship") || q.includes("scholarships") || q.includes("opportunity") || q.includes("opportunities") || q.includes("list") || q.includes("show") || q.includes("find") || q.includes("money") || q.includes("grant");
+    if (isSeekingGeneral) {
+      return mockScholarships;
+    }
+
+    return [];
   };
 
   const handleSend = () => {
@@ -66,16 +180,24 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
     setTimeout(() => {
       setIsTyping(false);
       const results = parseAndMatch(userQuery);
-      let aiText = "// Processing request...\n// Analysis complete. Here are relevant insights:";
-      if (results.length > 0 && (userQuery.toLowerCase().includes("scholarship") || userQuery.toLowerCase().includes("money"))) {
-        aiText = "// MATCH FOUND.\n// Displaying scholarship results:";
+      
+      const greetings = ["hi", "hello", "hey", "hola", "greetings", "good morning", "good afternoon", "good evening"];
+      const isGreeting = greetings.some(g => userQuery.toLowerCase().trim() === g || userQuery.toLowerCase().trim().startsWith(g + " "));
+
+      let aiText = "";
+      if (isGreeting) {
+        aiText = "// AVORIQ TERMINAL v1.0\n// Hello! I am your AI Scholarship Companion.\n// How can I assist you today? You can ask me things like:\n// - 'Show me scholarships for engineering students'\n// - 'Are there any scholarships for girls?'\n// - 'List postgraduate scholarships'";
+      } else if (results.length > 0) {
+        aiText = `// MATCH FOUND.\n// Found ${results.length} matching scholarships. Displaying top matches below:`;
+      } else {
+        aiText = "// ANALYSIS COMPLETE.\n// No matching scholarships found for your query.\n// Try searching using other keywords (e.g. 'girls', 'engineering', 'government', 'UG', 'caste SC').";
       }
 
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: "ai",
         text: aiText,
-        results: results.length > 0 && aiText.includes("scholarship") ? results : undefined,
+        results: results.length > 0 && !isGreeting ? results.slice(0, 3) : undefined,
       };
       setMessages((prev) => [...prev, aiResponse]);
     }, 1200);
@@ -166,6 +288,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
         <div className="max-w-3xl mx-auto relative">
           <div className="relative flex items-center bg-surface border-2 border-[#333] focus-within:border-bauhaus-red focus-within:shadow-[3px_3px_0px_0px_#D92A2A] transition-all">
             <textarea
+              ref={textareaRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}

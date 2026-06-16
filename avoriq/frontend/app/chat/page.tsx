@@ -8,7 +8,7 @@ import { useLocalStorage } from "../../hooks/useLocalStorage";
 
 export default function ChatPage() {
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
-  const [savedIds, setSavedIds] = useLocalStorage<string[]>("avoriq_saved_ids", []);
+  const [savedIds, setSavedIds] = useLocalStorage<string[]>("avoriq_saved", []);
 
   const handleToggleSave = (id: string) => {
     setSavedIds((prev) =>
@@ -17,7 +17,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-full w-full">
+    <div className="h-[calc(100vh-64px)] mt-16 w-full overflow-hidden flex flex-col">
       <ChatEngine 
         onOpenDetails={setSelectedScholarship}
         savedIds={savedIds}

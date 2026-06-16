@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 import AnimatedContent from "../components/reactbits/AnimatedContent";
 import CountUp from "../components/reactbits/CountUp";
 import { Badge } from "../components/ui/Badge";
+import { useAuth } from "../context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const stats = [
   { value: 1000, suffix: "+", label: "Scholarships", icon: Award },
@@ -38,6 +41,19 @@ const features = [
 ];
 
 export default function LandingPage() {
+  const { user, loading, isQuestionnaireCompleted } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (isQuestionnaireCompleted) {
+        router.replace("/scholarships");
+      } else {
+        router.replace("/questionnaire");
+      }
+    }
+  }, [user, loading, isQuestionnaireCompleted, router]);
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
 

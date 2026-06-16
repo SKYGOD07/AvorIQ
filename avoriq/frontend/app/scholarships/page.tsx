@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search, Filter, SlidersHorizontal } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
+import { Search, Filter, SlidersHorizontal, ArrowRight, Sparkles } from "lucide-react";
 import { mockScholarships } from "../../data/scholarships";
 import ScholarshipCard from "../../components/ScholarshipCard";
 import ScholarshipDetailModal from "../../components/ScholarshipDetailModal";
@@ -10,15 +11,24 @@ import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { AnimatePresence } from "framer-motion";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ScholarshipsFinderPage() {
+  const { user, userProfile } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [educationFilter, setEducationFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  
+
   const [savedIds, setSavedIds] = useLocalStorage<string[]>("avoriq_saved", []);
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
+
+  // Auto-set academic level filter from user profile on load
+  useEffect(() => {
+    if (userProfile?.educationLevel) {
+      setEducationFilter(userProfile.educationLevel);
+    }
+  }, [userProfile]);
 
   const handleToggleSave = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -31,13 +41,30 @@ export default function ScholarshipsFinderPage() {
 
   const filteredScholarships = useMemo(() => {
     return mockScholarships.filter((s) => {
-      const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            s.provider.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.provider.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter ? s.category === categoryFilter : true;
       const matchesEducation = educationFilter ? s.eligibility.educationLevel.includes(educationFilter) : true;
-      return matchesSearch && matchesCategory && matchesEducation;
+      
+      // Auto-match profile constraints if user is logged in and profile exists
+      let matchesProfile = true;
+      if (userProfile) {
+        const matchesGender = s.eligibility.gender === "All" || s.eligibility.gender === userProfile.gender;
+        const matchesIncome = s.eligibility.familyIncomeMax === 0 || userProfile.familyIncomeMax <= s.eligibility.familyIncomeMax;
+        const matchesState = s.eligibility.states.includes("All") || s.eligibility.states.includes(userProfile.state);
+        matchesProfile = matchesGender && matchesIncome && matchesState;
+      }
+      
+      return matchesSearch && matchesCategory && matchesEducation && matchesProfile;
     });
-  }, [searchQuery, categoryFilter, educationFilter]);
+  }, [searchQuery, categoryFilter, educationFilter, userProfile]);
+
+  const displayedScholarships = useMemo(() => {
+    if (user) {
+      return filteredScholarships;
+    }
+    return filteredScholarships.slice(0, 3);
+  }, [filteredScholarships, user]);
 
   const categories = [
     { label: "All Categories", value: "" },
@@ -83,8 +110,8 @@ export default function ScholarshipsFinderPage() {
               className="h-12 text-sm"
             />
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setShowFilters(!showFilters)}
             className="md:hidden flex items-center justify-center gap-2 h-12 px-4 bg-surface-2 border-2 border-[#333] text-slate-400 font-black text-xs uppercase tracking-widest"
           >
@@ -100,26 +127,84 @@ export default function ScholarshipsFinderPage() {
 
         {/* Results */}
         <div className="mb-6 flex items-center justify-between text-[10px] text-slate-500 font-black uppercase tracking-widest">
-          <p>Showing <span className="text-foreground">{filteredScholarships.length}</span> results</p>
+          <p>
+            Showing <span className="text-foreground">{displayedScholarships.length}</span> of <span className="text-foreground">{filteredScholarships.length}</span> results
+          </p>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4" />
             <span>By Deadline</span>
           </div>
         </div>
 
-        {filteredScholarships.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
-            <AnimatePresence>
-              {filteredScholarships.map((scholarship) => (
-                <ScholarshipCard
-                  key={scholarship.id}
-                  scholarship={scholarship}
-                  isSaved={savedIds.includes(scholarship.id)}
-                  onToggleSave={(e) => handleToggleSave(e, scholarship.id)}
-                  onOpenDetails={() => setSelectedScholarship(scholarship)}
-                />
-              ))}
-            </AnimatePresence>
+        {displayedScholarships.length > 0 ? (
+          <div className="relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
+              <AnimatePresence>
+                {/* 1. First 3 normal cards */}
+                {displayedScholarships.slice(0, 3).map((scholarship) => (
+                  <ScholarshipCard
+                    key={scholarship.id}
+                    scholarship={scholarship}
+                    isSaved={savedIds.includes(scholarship.id)}
+                    onToggleSave={(e) => handleToggleSave(e, scholarship.id)}
+                    onOpenDetails={() => setSelectedScholarship(scholarship)}
+                  />
+                ))}
+
+                {/* 2. Next cards, rendered as blurred if user is not logged in */}
+                {!user && filteredScholarships.length > 3 && (
+                  filteredScholarships.slice(3, 6).map((scholarship) => (
+                    <div key={scholarship.id} className="blur-[4px] opacity-65 pointer-events-none select-none">
+                      <ScholarshipCard
+                        scholarship={scholarship}
+                        isSaved={false}
+                        onToggleSave={() => { }}
+                        onOpenDetails={() => { }}
+                      />
+                    </div>
+                  ))
+                )}
+
+                {/* 3. If user is logged in, render the rest normally */}
+                {user && displayedScholarships.slice(3).map((scholarship) => (
+                  <ScholarshipCard
+                    key={scholarship.id}
+                    scholarship={scholarship}
+                    isSaved={savedIds.includes(scholarship.id)}
+                    onToggleSave={(e) => handleToggleSave(e, scholarship.id)}
+                    onOpenDetails={() => setSelectedScholarship(scholarship)}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* 4. Overlay Box for Anonymous Users */}
+            {!user && filteredScholarships.length > 3 && (
+              <div className="absolute bottom-0 left-0 right-0 top-[33.3%] md:top-[50%] bg-background/40 backdrop-blur-[1px] flex flex-col items-center justify-center pb-8 pt-12 px-4 z-20">
+                <div className="bg-surface border-3 border-foreground p-8 sm:p-10 text-center max-w-lg brutal-shadow-lg relative flex flex-col items-center">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-bauhaus-red/5 -mr-8 -mt-8 rounded-full" />
+
+                  <div className="w-12 h-12 bg-bauhaus-yellow text-white flex items-center justify-center mb-5 brutal-border border-foreground">
+                    <Sparkles className="w-6 h-6 text-black" />
+                  </div>
+
+                  <h3 className="text-foreground font-black text-lg sm:text-xl uppercase tracking-wider mb-3 leading-tight">
+                    VIEW All {filteredScholarships.length} Opportunities
+                  </h3>
+
+                  <p className="text-slate-500 text-xs uppercase tracking-wider font-bold max-w-xs mb-6">
+                    Sign in with your email or Google account to view the full matching list and apply.
+                  </p>
+
+                  <Link href="/login">
+                    <button className="px-6 py-3.5 bg-bauhaus-red text-white text-xs font-black uppercase tracking-widest border-2 border-bauhaus-red hover:bg-transparent hover:text-bauhaus-red transition-all flex items-center gap-2 cursor-pointer brutal-shadow-sm hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_#D92A2A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+                      Login to View More
+                      <ArrowRight className="w-4.5 h-4.5" />
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="py-20 text-center bg-surface border-2 border-[#333] flex flex-col items-center">
@@ -128,7 +213,7 @@ export default function ScholarshipsFinderPage() {
             <p className="text-slate-500 text-sm max-w-md mx-auto uppercase tracking-wider">
               Try adjusting your filters.
             </p>
-            <button 
+            <button
               onClick={() => { setSearchQuery(""); setCategoryFilter(""); setEducationFilter(""); }}
               className="mt-6 px-6 py-2.5 bg-foreground text-background font-black text-xs uppercase tracking-widest border-2 border-foreground hover:bg-transparent hover:text-foreground transition-all cursor-pointer"
             >

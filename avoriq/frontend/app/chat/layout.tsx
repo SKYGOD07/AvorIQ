@@ -13,7 +13,7 @@ import {
   User
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLocalStorage } from "../../hooks/useLocalStorage";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ChatLayout({
   children,
@@ -21,7 +21,7 @@ export default function ChatLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [authToken, setAuthToken] = useLocalStorage<string | null>("avoriq_auth_token", null);
+  const { user, logout } = useAuth();
 
   // Mock chat history
   const recentChats = [
@@ -69,19 +69,24 @@ export default function ChatLayout({
 
             {/* User Section */}
             <div className="p-4 border-t border-white/5 space-y-2">
-              {authToken ? (
+              {user ? (
                 <>
                   <div className="flex items-center gap-3 p-2">
-                    <div className="w-8 h-8 rounded-full bg-accent-purple/20 flex items-center justify-center text-accent-purple border border-accent-purple/30">
+                    <div className="w-8 h-8 rounded-full bg-accent-purple/20 flex items-center justify-center text-accent-purple border border-accent-purple/30 shrink-0">
                       <User className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold truncate">Premium User</p>
+                      <p className="text-xs font-bold truncate" title={user.displayName || user.email || "User"}>
+                        {user.displayName || user.email?.split("@")[0] || "User"}
+                      </p>
+                      <p className="text-[10px] text-slate-400 truncate" title={user.email || ""}>
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                   <button 
-                    onClick={() => setAuthToken(null)}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-rose-500/10 text-rose-400 transition-all text-sm"
+                    onClick={() => logout()}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-rose-500/10 text-rose-400 transition-all text-sm cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -89,7 +94,7 @@ export default function ChatLayout({
                 </>
               ) : (
                 <Link href="/login" className="w-full">
-                  <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-accent-blue/10 border border-accent-blue/20 text-accent-blue hover:bg-accent-blue hover:text-white transition-all text-sm font-bold">
+                  <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-accent-blue/10 border border-accent-blue/20 text-accent-blue hover:bg-accent-blue hover:text-white transition-all text-sm font-bold cursor-pointer">
                     <Sparkles className="w-4 h-4" />
                     Sign in to Save History
                   </button>

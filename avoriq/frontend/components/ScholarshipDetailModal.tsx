@@ -154,7 +154,7 @@ export default function ScholarshipDetailModal({
                   {[
                     { label: "Academic Level", value: scholarship.eligibility.educationLevel.join(", ") },
                     { label: "Gender", value: scholarship.eligibility.gender === "All" ? "Open to all" : `${scholarship.eligibility.gender} only` },
-                    { label: "Family Income", value: scholarship.eligibility.familyIncomeMax > 0 ? `Below ₹${scholarship.eligibility.familyIncomeMax.toLocaleString()}` : "No limit" },
+                    { label: "Family Income", value: scholarship.eligibility.familyIncomeMax > 0 ? `Below ₹${scholarship.eligibility.familyIncomeMax.toLocaleString("en-IN")}` : "No limit" },
                     { label: "States", value: scholarship.eligibility.states.includes("All") ? "All India" : scholarship.eligibility.states.join(", ") },
                     { label: "Category", value: scholarship.eligibility.castes.join(", ") },
                     { label: "Field of Study", value: scholarship.eligibility.fieldsOfStudy.includes("All") ? "All streams" : scholarship.eligibility.fieldsOfStudy.join(", ") },

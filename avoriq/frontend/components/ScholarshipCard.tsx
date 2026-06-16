@@ -108,7 +108,7 @@ export default function ScholarshipCard({
 
           {/* Eligibility snippet */}
           <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 my-3">
-            <strong className="text-slate-400">Eligible:</strong> {scholarship.eligibility.educationLevel.join(", ")} | Max Income: ₹{scholarship.eligibility.familyIncomeMax > 0 ? scholarship.eligibility.familyIncomeMax.toLocaleString() : "None"}
+            <strong className="text-slate-400">Eligible:</strong> {scholarship.eligibility.educationLevel.join(", ")} | Max Income: ₹{scholarship.eligibility.familyIncomeMax > 0 ? scholarship.eligibility.familyIncomeMax.toLocaleString("en-IN") : "None"}
           </p>
         </div>
 

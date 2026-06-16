@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { AuthProvider } from "../context/AuthContext";
+import { RouteGuard } from "../components/RouteGuard";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,16 +33,20 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
       <body className={`${inter.variable} min-h-screen flex flex-col bg-background text-foreground antialiased relative font-sans`}>
-        {/* Subtle grid background */}
-        <div className="mesh-bg" />
-        
-        <Navbar />
+        <AuthProvider>
+          <RouteGuard>
+            {/* Subtle grid background */}
+            <div className="mesh-bg" />
+            
+            <Navbar />
 
-        <main className="flex-1 flex flex-col justify-start relative z-10">
-          {children}
-        </main>
+            <main className="flex-1 flex flex-col justify-start relative z-10">
+              {children}
+            </main>
 
-        <Footer />
+            <Footer />
+          </RouteGuard>
+        </AuthProvider>
       </body>
     </html>
   );

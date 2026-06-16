@@ -14,98 +14,48 @@ export default function ComingSoonPage() {
     e.preventDefault();
     if (email) {
       setSubmitted(true);
-      confetti({
-        particleCount: 120,
-        spread: 70,
-        origin: { y: 0.7 }
-      });
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.7 } });
     }
   };
 
   const comingSoonFeatures = [
-    {
-      title: "AI Study Planner",
-      description: "Generates custom adaptive study roadmaps, mapping out chapters, study guides, and micro-milestones based on your target syllabus.",
-      iconName: "Calendar" as const,
-      phase: "Phase 2 (Q4 2026)",
-    },
-    {
-      title: "Exam Prep Assistant",
-      description: "Provides mock exam papers (JEE, NEET, Board papers), instant grading, detailed explanations, and performance metrics.",
-      iconName: "Award" as const,
-      phase: "Phase 2 (Q4 2026)",
-    },
-    {
-      title: "YouTube Learning Companion",
-      description: "Curates noise-free, highly structured learning modules from verified YouTube channels, skipping clickbait and distractions.",
-      iconName: "Play" as const,
-      phase: "Phase 3 (Q1 2027)",
-    },
-    {
-      title: "Career Navigator",
-      description: "Maps pathways from Class 6 to Graduation, detailing skills, certifications, and entry-level positions for your dream job.",
-      iconName: "Compass" as const,
-      phase: "Phase 3 (Q1 2027)",
-    },
-    {
-      title: "WhatsApp AI Assistant",
-      description: "Ask queries, receive deadline alerts, scan document eligibility check-ups, and receive guidance directly via a WhatsApp chat.",
-      iconName: "MessageSquare" as const,
-      phase: "Phase 2 (Q3 2026)",
-    },
-    {
-      title: "Community Forums",
-      description: "Safely connect with peer groups, study buddies, and alumni mentors in verified academic forums moderated by AI safeguards.",
-      iconName: "Users" as const,
-      phase: "Phase 4 (Q2 2027)",
-    },
-    {
-      title: "Parent Dashboard",
-      description: "Provides a supportive portal for parents to monitor academic milestones, scholarship application progress, and safe chat summaries.",
-      iconName: "LineChart" as const,
-      phase: "Phase 4 (Q2 2027)",
-    },
-    {
-      title: "Voice Assistant",
-      description: "Enables hands-free voice commands and verbal learning modules for students with visual impairments or language barriers.",
-      iconName: "Mic" as const,
-      phase: "Phase 3 (Q2 2027)",
-    },
-    {
-      title: "Mental Wellness Support",
-      description: "A private, compassionate AI space providing stress relief strategies, relaxation exercises, and mindfulness techniques for exam anxiety.",
-      iconName: "Heart" as const,
-      phase: "Phase 2 (Q3 2026)",
-    },
+    { title: "AI Study Planner", description: "Custom adaptive study roadmaps based on your target syllabus.", iconName: "Calendar" as const, phase: "Phase 2" },
+    { title: "Exam Prep Assistant", description: "Mock papers, instant grading, and performance metrics.", iconName: "Award" as const, phase: "Phase 2" },
+    { title: "YouTube Companion", description: "Curated noise-free learning from verified channels.", iconName: "Play" as const, phase: "Phase 3" },
+    { title: "Career Navigator", description: "Pathways from Class 6 to Graduation with skills mapping.", iconName: "Compass" as const, phase: "Phase 3" },
+    { title: "WhatsApp Assistant", description: "Queries, alerts, and guidance directly via WhatsApp.", iconName: "MessageSquare" as const, phase: "Phase 2" },
+    { title: "Community Forums", description: "Connect with peers and alumni in moderated forums.", iconName: "Users" as const, phase: "Phase 4" },
+    { title: "Parent Dashboard", description: "Monitor milestones and application progress.", iconName: "LineChart" as const, phase: "Phase 4" },
+    { title: "Voice Assistant", description: "Hands-free voice commands and verbal learning.", iconName: "Mic" as const, phase: "Phase 3" },
+    { title: "Mental Wellness", description: "Stress relief strategies and exam anxiety support.", iconName: "Heart" as const, phase: "Phase 2" },
   ];
 
   return (
-    <div className="min-h-screen pt-28 pb-16 relative overflow-hidden">
+    <div className="min-h-screen pt-28 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-terracotta/10 border border-terracotta/20 text-terracotta rounded-full text-xs font-semibold uppercase tracking-wider font-mono">
+        <div className="mb-16 max-w-3xl space-y-4">
+          <span className="text-bauhaus-red text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Project Roadmap</span>
-          </div>
-          <h1 className="text-white text-4xl sm:text-5xl font-extrabold tracking-tight">
-            Our Development <span className="heading-editorial text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-violet">Vision</span>
+            Roadmap
+          </span>
+          <h1 className="text-foreground text-4xl sm:text-5xl font-black uppercase tracking-tight leading-[0.95]">
+            DEVELOPMENT<br />
+            <span className="text-bauhaus-red">VISION</span>
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-            AvorIQ will grow to become the ultimate AI companion for Indian student life. While today we assist with scholarship intelligence, here are the modules currently in active development.
+          <div className="w-24 h-[3px] bg-bauhaus-red" />
+          <p className="text-slate-500 text-sm uppercase tracking-wider font-medium">
+            While today we assist with scholarship intelligence, here are the modules in active development.
           </p>
         </div>
 
-        {/* Waitlist Subscription Banner */}
-        <div className="glass-panel p-8 rounded-3xl border border-white/10 max-w-3xl mx-auto mb-16 relative overflow-hidden text-center space-y-6">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-terracotta/8 rounded-full blur-2xl pointer-events-none" />
-          
-          <h2 className="text-white text-xl sm:text-2xl font-bold">
-            Join the AvorIQ Beta Waitlist
+        {/* Waitlist */}
+        <div className="bg-surface border-2 border-foreground brutal-shadow p-8 max-w-3xl mb-16 space-y-6">
+          <h2 className="text-foreground text-lg font-black uppercase tracking-wider">
+            Join the Beta Waitlist
           </h2>
-          <p className="text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
-            Be the first to access our AI Study Planner and WhatsApp Assistant modules when they launch in private beta this summer.
+          <p className="text-slate-500 text-xs uppercase tracking-wider">
+            Be the first to access new modules when they launch.
           </p>
 
           <AnimatePresence mode="wait">
@@ -115,53 +65,46 @@ export default function ComingSoonPage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onSubmit={handleSubscribe}
-                className="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto"
+                className="flex items-center gap-0 max-w-md"
               >
-                <div className="relative w-full">
-                  <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                <div className="relative flex-1">
+                  <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-600" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your student email"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-white text-sm"
+                    placeholder="YOUR EMAIL"
+                    className="w-full pl-10 pr-4 py-3 bg-surface-2 border-2 border-[#333] border-r-0 text-foreground text-sm font-bold uppercase tracking-wider focus:outline-none focus:border-bauhaus-red placeholder:text-slate-600"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-terracotta to-violet hover:opacity-95 text-white font-bold rounded-xl text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="px-6 py-3 bg-bauhaus-red text-white font-black text-xs uppercase tracking-widest border-2 border-bauhaus-red hover:bg-transparent hover:text-bauhaus-red transition-all cursor-pointer flex items-center gap-2"
                 >
-                  <span>Register</span>
+                  Register
                   <Send className="w-4 h-4" />
                 </button>
               </motion.form>
             ) : (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center justify-center gap-2 text-accent-emerald font-bold text-sm bg-accent-emerald/10 border border-accent-emerald/20 py-3.5 px-6 rounded-xl w-fit mx-auto"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-2 text-accent-emerald font-black text-xs uppercase tracking-widest bg-accent-emerald/10 border-2 border-accent-emerald py-3 px-6 w-fit"
               >
                 <CheckCircle2 className="w-4.5 h-4.5" />
-                <span>You have been registered for private beta! Check your email soon.</span>
+                Registered for beta!
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
         {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
           {comingSoonFeatures.map((f, idx) => (
-            <ComingSoonCard
-              key={idx}
-              title={f.title}
-              description={f.description}
-              iconName={f.iconName}
-              phase={f.phase}
-            />
+            <ComingSoonCard key={idx} title={f.title} description={f.description} iconName={f.iconName} phase={f.phase} />
           ))}
         </div>
-
       </div>
     </div>
   );

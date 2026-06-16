@@ -35,7 +35,6 @@ export default function ScholarshipsFinderPage() {
                             s.provider.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter ? s.category === categoryFilter : true;
       const matchesEducation = educationFilter ? s.eligibility.educationLevel.includes(educationFilter) : true;
-      
       return matchesSearch && matchesCategory && matchesEducation;
     });
   }, [searchQuery, categoryFilter, educationFilter]);
@@ -60,69 +59,56 @@ export default function ScholarshipsFinderPage() {
   return (
     <div className="min-h-screen bg-background pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header section */}
-        <div className="mb-10 text-center md:text-left md:flex md:items-end md:justify-between">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-2">
-              Find Your{" "}
-            </h1>
-            <span className="heading-editorial text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-accent-emerald">
-              Scholarship
-            </span>
-            <p className="text-slate-400 text-lg max-w-2xl mt-4">
-              Discover opportunities that match your profile. Filter by category, education level, and more.
-            </p>
-          </div>
+        {/* Header */}
+        <div className="mb-10">
+          <span className="text-bauhaus-red text-[10px] font-black uppercase tracking-[0.3em] block mb-3">Match Engine</span>
+          <h1 className="text-foreground text-4xl md:text-5xl font-black uppercase tracking-tight leading-[0.95]">
+            FIND YOUR<br />
+            <span className="text-bauhaus-red">SCHOLARSHIP</span>
+          </h1>
+          <div className="w-24 h-[3px] bg-bauhaus-red mt-4 mb-4" />
+          <p className="text-slate-500 text-sm max-w-lg uppercase tracking-wider font-medium">
+            Discover opportunities that match your profile. Filter by category, education level, and more.
+          </p>
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-surface/50 backdrop-blur-md border border-white/10 p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 shadow-lg shadow-black/20">
+        <div className="bg-surface border-2 border-[#333] p-4 mb-8 flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <Input
-              placeholder="Search by name, provider or keywords..."
+              placeholder="SEARCH BY NAME OR PROVIDER..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              leftIcon={<Search className="w-5 h-5 text-slate-400" />}
-              className="bg-background border-white/5 h-12 text-base rounded-xl"
+              leftIcon={<Search className="w-5 h-5 text-slate-500" />}
+              className="h-12 text-sm"
             />
           </div>
           
           <button 
             onClick={() => setShowFilters(!showFilters)}
-            className="md:hidden flex items-center justify-center gap-2 h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-slate-300 font-medium"
+            className="md:hidden flex items-center justify-center gap-2 h-12 px-4 bg-surface-2 border-2 border-[#333] text-slate-400 font-black text-xs uppercase tracking-widest"
           >
             <SlidersHorizontal className="w-5 h-5" />
             Filters
           </button>
 
           <div className={`md:flex gap-4 ${showFilters ? 'flex flex-col' : 'hidden'}`}>
-            <Select
-              options={categories}
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-background border-white/5 h-12 rounded-xl min-w-[200px]"
-            />
-            <Select
-              options={educationLevels}
-              value={educationFilter}
-              onChange={(e) => setEducationFilter(e.target.value)}
-              className="bg-background border-white/5 h-12 rounded-xl min-w-[200px]"
-            />
+            <Select options={categories} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-12 min-w-[200px]" />
+            <Select options={educationLevels} value={educationFilter} onChange={(e) => setEducationFilter(e.target.value)} className="h-12 min-w-[200px]" />
           </div>
         </div>
 
-        {/* Results Info */}
-        <div className="mb-6 flex items-center justify-between text-sm text-slate-400 font-medium">
-          <p>Showing <span className="text-white font-bold">{filteredScholarships.length}</span> results</p>
+        {/* Results */}
+        <div className="mb-6 flex items-center justify-between text-[10px] text-slate-500 font-black uppercase tracking-widest">
+          <p>Showing <span className="text-foreground">{filteredScholarships.length}</span> results</p>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4" />
-            <span>Sorted by Deadline</span>
+            <span>By Deadline</span>
           </div>
         </div>
 
-        {/* Scholarship Grid */}
         {filteredScholarships.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0">
             <AnimatePresence>
               {filteredScholarships.map((scholarship) => (
                 <ScholarshipCard
@@ -136,26 +122,22 @@ export default function ScholarshipsFinderPage() {
             </AnimatePresence>
           </div>
         ) : (
-          <div className="py-20 text-center bg-surface/30 border border-white/5 rounded-3xl flex flex-col items-center">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 text-slate-500">
-              <Search className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">No scholarships found</h3>
-            <p className="text-slate-400 max-w-md mx-auto">
-              We couldn't find any scholarships matching your current filters. Try adjusting your search criteria or clearing filters.
+          <div className="py-20 text-center bg-surface border-2 border-[#333] flex flex-col items-center">
+            <Search className="w-10 h-10 text-slate-600 mb-4" />
+            <h3 className="text-lg font-black uppercase tracking-wider text-foreground mb-2">No Results</h3>
+            <p className="text-slate-500 text-sm max-w-md mx-auto uppercase tracking-wider">
+              Try adjusting your filters.
             </p>
             <button 
               onClick={() => { setSearchQuery(""); setCategoryFilter(""); setEducationFilter(""); }}
-              className="mt-6 px-6 py-2.5 bg-white/10 hover:bg-white/20 transition-colors rounded-xl text-white font-semibold"
+              className="mt-6 px-6 py-2.5 bg-foreground text-background font-black text-xs uppercase tracking-widest border-2 border-foreground hover:bg-transparent hover:text-foreground transition-all cursor-pointer"
             >
-              Clear all filters
+              Clear Filters
             </button>
           </div>
         )}
-
       </div>
 
-      {/* Scholarship Detail Modal */}
       <AnimatePresence>
         {selectedScholarship && (
           <ScholarshipDetailModal

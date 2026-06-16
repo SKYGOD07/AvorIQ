@@ -1,35 +1,32 @@
-import { HTMLAttributes, forwardRef } from "react";
-import { cn } from "@/lib/utils";
+"use client";
 
-export interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "secondary" | "outline" | "success" | "warning" | "error";
+import { ReactNode } from "react";
+import { cn } from "../../lib/utils";
+
+interface BadgeProps {
+  children: ReactNode;
+  variant?: "default" | "outline" | "red" | "yellow" | "success" | "warning" | "error";
+  className?: string;
 }
 
-const Badge = forwardRef<HTMLDivElement, BadgeProps>(
-  ({ className, variant = "default", ...props }, ref) => {
-    const variants = {
-      default: "border-transparent bg-terracotta text-white shadow hover:bg-terracotta/80",
-      secondary: "border-transparent bg-surface-2 text-slate-200 hover:bg-surface-2/80",
-      outline: "text-slate-300 border-white/20",
-      success: "border-transparent bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-      warning: "border-transparent bg-amber-500/10 text-amber-400 border border-amber-500/20",
-      error: "border-transparent bg-red-500/10 text-red-400 border border-red-500/20",
-    };
+export function Badge({ children, variant = "default", className = "" }: BadgeProps) {
+  const variantStyles = {
+    default: "bg-surface-2 border-2 border-[#333] text-foreground",
+    outline: "bg-transparent border-2 border-foreground text-foreground",
+    red: "bg-bauhaus-red/10 border-2 border-bauhaus-red text-bauhaus-red",
+    yellow: "bg-bauhaus-yellow/10 border-2 border-bauhaus-yellow text-bauhaus-yellow",
+    success: "bg-accent-emerald/10 border-2 border-accent-emerald text-accent-emerald",
+    warning: "bg-bauhaus-yellow/10 border-2 border-bauhaus-yellow text-bauhaus-yellow",
+    error: "bg-bauhaus-red/10 border-2 border-bauhaus-red text-bauhaus-red",
+  };
 
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-terracotta focus:ring-offset-2 focus:ring-offset-background",
-          variants[variant],
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
-
-Badge.displayName = "Badge";
-
-export { Badge };
+  return (
+    <span className={cn(
+      "inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest",
+      variantStyles[variant],
+      className
+    )}>
+      {children}
+    </span>
+  );
+}

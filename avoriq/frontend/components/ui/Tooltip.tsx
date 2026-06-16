@@ -1,35 +1,16 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export interface TooltipProps {
-  content: ReactNode;
+interface TooltipProps {
   children: ReactNode;
+  content: string;
   position?: "top" | "bottom" | "left" | "right";
-  delay?: number;
-  className?: string;
 }
 
-export function Tooltip({
-  content,
-  children,
-  position = "top",
-  delay = 200,
-  className = "",
-}: TooltipProps) {
+export function Tooltip({ children, content, position = "top" }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-
-  const showTooltip = () => {
-    const id = setTimeout(() => setIsVisible(true), delay);
-    setTimeoutId(id);
-  };
-
-  const hideTooltip = () => {
-    if (timeoutId) clearTimeout(timeoutId);
-    setIsVisible(false);
-  };
 
   const positionStyles = {
     top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
@@ -38,37 +19,25 @@ export function Tooltip({
     right: "left-full top-1/2 -translate-y-1/2 ml-2",
   };
 
-  const arrowStyles = {
-    top: "top-full left-1/2 -translate-x-1/2 border-t-accent-blue",
-    bottom: "bottom-full left-1/2 -translate-x-1/2 border-b-accent-blue",
-    left: "left-full top-1/2 -translate-y-1/2 border-l-accent-blue",
-    right: "right-full top-1/2 -translate-y-1/2 border-r-accent-blue",
-  };
-
   return (
-    <div className="relative inline-block" onMouseEnter={showTooltip} onMouseLeave={hideTooltip} onFocus={showTooltip} onBlur={hideTooltip}>
+    <div
+      className="relative inline-block"
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
+    >
       {children}
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: position === "top" ? 4 : position === "bottom" ? -4 : 0, x: position === "left" ? 4 : position === "right" ? -4 : 0 }}
-            animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.15 }}
-            className={`
-              absolute ${positionStyles[position]} z-50
-              glass-panel-strong px-3 py-2 rounded-lg text-xs font-medium text-white whitespace-nowrap
-              shadow-lg shadow-terracotta/10
-              ${className}
-            `}
-            role="tooltip"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            className={`absolute z-50 ${positionStyles[position]} pointer-events-none`}
           >
-            {content}
-            <div
-              className={`
-                absolute w-0 h-0 border-4 border-transparent ${arrowStyles[position]}
-              `}
-            />
+            <div className="px-3 py-1.5 bg-foreground text-background text-[10px] font-black uppercase tracking-wider whitespace-nowrap border-2 border-foreground">
+              {content}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

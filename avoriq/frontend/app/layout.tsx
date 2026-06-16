@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import localFont from "next/font/local";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "./globals.css";
@@ -8,30 +7,13 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-});
-
-// Instrument Serif for editorial display headings
-const instrumentSerif = localFont({
-  src: [
-    {
-      path: "../public/fonts/InstrumentSerif-Italic.ttf",
-      weight: "400",
-      style: "italic",
-    },
-    {
-      path: "../public/fonts/InstrumentSerif-Regular.ttf",
-      weight: "400",
-      style: "normal",
-    },
-  ],
-  variable: "--font-instrument-serif",
-  display: "swap",
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
   title: "AvorIQ | AI Scholarship Companion for Indian Students",
-  description: "AvorIQ helps Indian students from Class 6 to Graduation discover scholarships they actually qualify for before deadlines pass. Experience cognitive opportunity matching.",
-  keywords: ["Scholarships", "Indian Students", "AI Education", "Class 6 to Graduation", "Scholarship Eligibility", "National Scholarships", "State Scholarships"],
+  description: "AvorIQ helps Indian students from Class 6 to Graduation discover scholarships they actually qualify for before deadlines pass.",
+  keywords: ["Scholarships", "Indian Students", "AI Education", "Class 6 to Graduation", "Scholarship Eligibility"],
   authors: [{ name: "AvorIQ Team" }],
   openGraph: {
     title: "AvorIQ - Find Scholarships Meant For You",
@@ -47,20 +29,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning data-scroll-behavior="smooth">
-      <body className={`${inter.variable} ${instrumentSerif.variable} min-h-screen flex flex-col bg-background text-foreground antialiased relative font-sans`}>
-        {/* Glow meshes background */}
+    <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
+      <body className={`${inter.variable} min-h-screen flex flex-col bg-background text-foreground antialiased relative font-sans`}>
+        {/* Subtle grid background */}
         <div className="mesh-bg" />
         
-        {/* Navigation Bar */}
         <Navbar />
 
-        {/* Core Main Area */}
-        <main className="flex-1 flex flex-col justify-start">
+        <main className="flex-1 flex flex-col justify-start relative z-10">
           {children}
         </main>
 
-        {/* Footer */}
         <Footer />
       </body>
     </html>

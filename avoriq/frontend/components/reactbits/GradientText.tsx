@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 interface GradientTextProps {
   children: ReactNode;
@@ -13,43 +13,32 @@ interface GradientTextProps {
 export default function GradientText({
   children,
   className = "",
-  colors = ["#E8715A", "#A78BFA", "#34D399", "#E8715A"], // terracotta to violet to emerald cycle
+  colors = ["#D92A2A", "#EAB308", "#D92A2A", "#EAB308", "#D92A2A"],
   animationSpeed = 8,
   showBorder = false,
 }: GradientTextProps) {
+  const textRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (textRef.current) {
+      textRef.current.style.setProperty("--gradient-speed", `${animationSpeed}s`);
+    }
+  }, [animationSpeed]);
+
   const gradientStyle = {
     backgroundImage: `linear-gradient(to right, ${colors.join(", ")})`,
     animationDuration: `${animationSpeed}s`,
   };
 
   return (
-    <div
-      className={`relative mx-auto flex max-w-fit flex-row items-center justify-center rounded-[1.25rem] font-medium backdrop-blur transition-shadow duration-500 overflow-hidden cursor-pointer ${className}`}
+    <span
+      ref={textRef}
+      className={`inline-block relative text-transparent bg-clip-text bg-[length:300%_100%] animate-gradient ${
+        showBorder ? "border-2 border-foreground px-2" : ""
+      } ${className}`}
+      style={gradientStyle}
     >
-      {showBorder && (
-        <div
-          className="absolute inset-0 bg-cover z-0 pointer-events-none animate-gradient"
-          style={{
-            ...gradientStyle,
-            backgroundSize: "300% 100%",
-          }}
-        >
-          <div className="absolute inset-[2px] rounded-[calc(1.25rem-2px)] bg-background z-[-1]" />
-        </div>
-      )}
-      <div
-        className={`inline-block relative z-2 text-transparent bg-cover animate-gradient bg-clip-text ${
-          showBorder ? "px-6 py-2" : ""
-        }`}
-        style={{
-          ...gradientStyle,
-          backgroundSize: "300% 100%",
-        }}
-      >
-        {children}
-      </div>
-      
-      {/* We need to add the animation keyframes to global css or here */}
+      {children}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes gradient {
           0% { background-position: 0% 50%; }
@@ -60,6 +49,6 @@ export default function GradientText({
           animation: gradient linear infinite;
         }
       `}} />
-    </div>
+    </span>
   );
 }

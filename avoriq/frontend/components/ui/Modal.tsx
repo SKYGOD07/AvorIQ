@@ -1,37 +1,34 @@
 "use client";
 
-import { Fragment, ReactNode } from "react";
+import { ReactNode } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-export interface ModalProps {
+interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
-  description?: string;
   children: ReactNode;
+  title?: string;
   size?: "sm" | "md" | "lg" | "xl" | "full";
-  showCloseButton?: boolean;
-  closeOnOverlayClick?: boolean;
+  closeOnBackdrop?: boolean;
   closeOnEscape?: boolean;
 }
 
 export function Modal({
   isOpen,
   onClose,
-  title,
-  description,
   children,
+  title,
   size = "md",
-  showCloseButton = true,
-  closeOnOverlayClick = true,
+  closeOnBackdrop = true,
   closeOnEscape = true,
 }: ModalProps) {
   const sizeStyles = {
-    sm: "max-w-md",
+    sm: "max-w-sm",
     md: "max-w-lg",
-    lg: "max-w-2xl",
-    xl: "max-w-4xl",
+    lg: "max-w-3xl",
+    xl: "max-w-5xl",
     full: "max-w-6xl",
   };
 
@@ -49,76 +46,41 @@ export function Modal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.15 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         onKeyDown={handleKeyDown}
       >
+        {/* Backdrop — solid black, no blur */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={closeOnOverlayClick ? onClose : undefined}
-          aria-hidden="true"
+          className="absolute inset-0 bg-black/85"
+          onClick={closeOnBackdrop ? onClose : undefined}
         />
+
+        {/* Modal Panel */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className={`
-            relative w-full ${sizeStyles[size]} glass-panel-strong rounded-3xl
-            overflow-hidden shadow-2xl
-            max-h-[85vh] flex flex-col
-          `}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={title ? "modal-title" : undefined}
-          aria-describedby={description ? "modal-description" : undefined}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.15 }}
+          className={`relative ${sizeStyles[size]} w-full bg-surface border-2 border-foreground brutal-shadow-lg z-10 max-h-[90vh] overflow-y-auto`}
         >
-          {(title || showCloseButton) && (
-            <div className="flex items-start justify-between p-6 border-b border-white/5">
-              <div>
-                {title && (
-                  <h2 id="modal-title" className="text-white text-xl font-bold">
-                    {title}
-                  </h2>
-                )}
-                {description && (
-                  <p id="modal-description" className="text-slate-400 text-sm mt-1">
-                    {description}
-                  </p>
-                )}
-              </div>
-              {showCloseButton && (
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors ml-4 flex-shrink-0"
-                  aria-label="Close modal"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
+          {title && (
+            <div className="flex items-center justify-between p-5 border-b-2 border-[#333]">
+              <h2 className="text-foreground text-lg font-black uppercase tracking-wider">{title}</h2>
+              <button
+                onClick={onClose}
+                className="p-2 text-slate-400 hover:text-foreground border-2 border-transparent hover:border-foreground transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
           )}
-          <div className="flex-1 overflow-y-auto p-6">
-            {children}
-          </div>
+          {children}
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  );
-}
-
-export interface ModalFooterProps {
-  children: ReactNode;
-  className?: string;
-}
-
-export function ModalFooter({ children, className = "" }: ModalFooterProps) {
-  return (
-    <div className={`mt-6 pt-4 border-t border-white/5 flex items-center justify-end gap-3 ${className}`}>
-      {children}
-    </div>
   );
 }

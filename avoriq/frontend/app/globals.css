@@ -1,53 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Warm Charcoal Backgrounds ── */
-  --color-background: #1A1A1A;
-  --color-foreground: #F5F5F0;
+  /* ── Dark Brutalist Backgrounds ── */
+  --color-background: #0A0A0A;
+  --color-foreground: #F0F0F0;
 
-  --color-surface: #242424;
-  --color-surface-2: #2D2D2D;
-  --color-surface-3: #353535;
-  --color-surface-elevated: #2A2A2A;
+  --color-surface: #141414;
+  --color-surface-2: #1A1A1A;
+  --color-surface-3: #222222;
+  --color-surface-elevated: #1E1E1E;
 
   /* Legacy aliases for existing code */
-  --color-navy-deep: #1A1A1A;
-  --color-navy-card: #242424;
-  --color-navy-light: #2D2D2D;
-  --color-navy-border: #383838;
+  --color-navy-deep: #0A0A0A;
+  --color-navy-card: #141414;
+  --color-navy-light: #1A1A1A;
+  --color-navy-border: #333333;
 
-  /* ── Brand Accents ── */
-  --color-accent-blue: #E8715A;
-  --color-accent-purple: #A78BFA;
-  --color-accent-emerald: #34D399;
-  --color-accent-amber: #FBBF24;
-  --color-accent-rose: #FB7185;
+  /* ── Bauhaus Accents ── */
+  --color-accent-blue: #D92A2A;   /* Legacy alias → now Bauhaus Red */
+  --color-accent-purple: #EAB308; /* Legacy alias → now Bauhaus Yellow */
+  --color-accent-emerald: #22C55E;
+  --color-accent-amber: #EAB308;
+  --color-accent-rose: #D92A2A;
 
-  /* Named palette */
-  --color-terracotta: #E8715A;
-  --color-terracotta-light: #F09A88;
-  --color-terracotta-dark: #C85A45;
-  --color-violet: #A78BFA;
-  --color-violet-light: #C4B5FD;
-  --color-violet-dark: #7C3AED;
+  /* Named Bauhaus palette */
+  --color-terracotta: #D92A2A;     /* Bauhaus Red */
+  --color-terracotta-light: #EF4444;
+  --color-terracotta-dark: #B91C1C;
+  --color-bauhaus-red: #D92A2A;
+  --color-bauhaus-yellow: #EAB308;
+  --color-bauhaus-yellow-light: #FACC15;
+  --color-bauhaus-white: #F0F0F0;
+  --color-bauhaus-gray: #888888;
+
+  /* Remove violet — redirect to yellow */
+  --color-violet: #EAB308;
+  --color-violet-light: #FACC15;
+  --color-violet-dark: #CA8A04;
 
   /* ── Status Colors ── */
-  --color-success: #34D399;
-  --color-warning: #FBBF24;
-  --color-error: #FB7185;
-
-  /* ── Glassmorphism Tokens ── */
-  --color-glass-bg: rgba(36, 36, 36, 0.65);
-  --color-glass-border: rgba(255, 255, 255, 0.06);
-  --color-glass-hover-bg: rgba(36, 36, 36, 0.85);
-  --color-glass-hover-border: rgba(232, 113, 90, 0.3);
+  --color-success: #22C55E;
+  --color-warning: #EAB308;
+  --color-error: #D92A2A;
 
   /* ── Animations ── */
   --animate-float: float 6s ease-in-out infinite;
   --animate-float-slow: float 8s ease-in-out infinite;
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-glow: glow 2s ease-in-out infinite alternate;
-  --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
   --animate-shimmer: shimmer 2s linear infinite;
   --animate-slide-up: slide-up 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   --animate-slide-down: slide-down 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -56,30 +55,20 @@
   --animate-marquee: marquee 20s linear infinite;
 
   /* ── Timing ── */
-  --duration-fast: 150ms;
-  --duration-normal: 300ms;
-  --duration-slow: 500ms;
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 400ms;
 
   /* ── Fonts ── */
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
-  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-serif: Georgia, "Times New Roman", serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 /* ── Keyframes ── */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes glow {
-  from { text-shadow: 0 0 4px rgba(232, 113, 90, 0.2), 0 0 10px rgba(167, 139, 250, 0.2); }
-  to { text-shadow: 0 0 12px rgba(232, 113, 90, 0.4), 0 0 20px rgba(167, 139, 250, 0.4); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(232, 113, 90, 0.15), 0 0 40px rgba(167, 139, 250, 0.08); }
-  50% { box-shadow: 0 0 30px rgba(232, 113, 90, 0.3), 0 0 60px rgba(167, 139, 250, 0.15); }
+  50% { transform: translateY(-6px); }
 }
 
 @keyframes shimmer {
@@ -114,8 +103,8 @@
 
 /* ── Root ── */
 :root {
-  --background: #1A1A1A;
-  --foreground: #F5F5F0;
+  --background: #0A0A0A;
+  --foreground: #F0F0F0;
 }
 
 body {
@@ -126,162 +115,174 @@ body {
 }
 
 ::selection {
-  background-color: rgba(232, 113, 90, 0.25);
-  color: #F5F5F0;
+  background-color: #D92A2A;
+  color: #F0F0F0;
 }
 
-/* ── Editorial Serif Typography ── */
-.font-editorial {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-}
+/* ══════════════════════════════════════════════
+   BRUTALIST DESIGN SYSTEM
+   ══════════════════════════════════════════════ */
 
+/* ── Brutalist Typography ── */
 .heading-editorial {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-weight: 900;
+  text-transform: uppercase;
   letter-spacing: -0.02em;
-  line-height: 1.05;
+  line-height: 0.95;
 }
 
-/* ── Glassmorphism Utilities ── */
+.font-editorial {
+  font-family: var(--font-sans);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* ── Brutalist Borders ── */
+.brutal-border {
+  border: 2px solid #F0F0F0;
+}
+
+.brutal-border-thick {
+  border: 3px solid #F0F0F0;
+}
+
+.brutal-border-red {
+  border: 2px solid #D92A2A;
+}
+
+.brutal-border-yellow {
+  border: 2px solid #EAB308;
+}
+
+/* ── Brutalist Offset Shadows ── */
+.brutal-shadow {
+  box-shadow: 4px 4px 0px 0px #F0F0F0;
+}
+
+.brutal-shadow-red {
+  box-shadow: 4px 4px 0px 0px #D92A2A;
+}
+
+.brutal-shadow-yellow {
+  box-shadow: 4px 4px 0px 0px #EAB308;
+}
+
+.brutal-shadow-sm {
+  box-shadow: 2px 2px 0px 0px #F0F0F0;
+}
+
+.brutal-shadow-lg {
+  box-shadow: 6px 6px 0px 0px #F0F0F0;
+}
+
+/* Active/pressed state — shadow collapses, element moves */
+.brutal-active:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px #F0F0F0;
+}
+
+.brutal-active-red:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px #D92A2A;
+}
+
+/* ── Brutalist Panels (replacing glassmorphism) ── */
 .glass-panel {
-  background: rgba(36, 36, 36, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #141414;
+  border: 2px solid #333333;
 }
 
 .glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s ease;
 }
 
 .glass-panel-hover:hover {
-  background: rgba(36, 36, 36, 0.85);
-  border-color: rgba(232, 113, 90, 0.25);
-  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.5), 0 0 20px 0 rgba(232, 113, 90, 0.08);
-  transform: translateY(-2px);
+  background: #1A1A1A;
+  border-color: #D92A2A;
+  box-shadow: 4px 4px 0px 0px #D92A2A;
+  transform: translate(-2px, -2px);
 }
 
 .glass-panel-strong {
-  background: rgba(26, 26, 26, 0.9);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0A0A0A;
+  border: 2px solid #444444;
 }
 
 .glass-panel-subtle {
-  background: rgba(36, 36, 36, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: #141414;
+  border: 1px solid #222222;
 }
 
 .glass-card {
-  background: rgba(36, 36, 36, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #141414;
+  border: 2px solid #333333;
+  border-radius: 0px;
+  transition: all 0.15s ease;
 }
 
 .glass-card:hover {
-  background: rgba(45, 45, 45, 0.8);
-  border-color: rgba(232, 113, 90, 0.25);
-  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px 0 rgba(232, 113, 90, 0.06);
-  transform: translateY(-4px);
+  background: #1A1A1A;
+  border-color: #D92A2A;
+  box-shadow: 4px 4px 0px 0px #D92A2A;
+  transform: translate(-2px, -2px);
 }
 
 .glass-input {
-  background: rgba(36, 36, 36, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #F5F5F0;
-  transition: all 0.2s ease;
+  background: #141414;
+  border: 2px solid #333333;
+  color: #F0F0F0;
+  transition: all 0.15s ease;
 }
 
 .glass-input:focus {
-  background: rgba(45, 45, 45, 0.85);
-  border-color: #E8715A;
+  background: #1A1A1A;
+  border-color: #D92A2A;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(232, 113, 90, 0.15);
+  box-shadow: 3px 3px 0px 0px #D92A2A;
 }
 
-/* ── Text Gradients ── */
+/* ── Text Styling ── */
 .text-gradient-primary {
-  background: linear-gradient(135deg, #E8715A 0%, #A78BFA 50%, #34D399 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #D92A2A;
 }
 
 .text-gradient-blue {
-  background: linear-gradient(135deg, #F09A88 0%, #E8715A 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #D92A2A;
 }
 
 .text-gradient-purple {
-  background: linear-gradient(135deg, #C4B5FD 0%, #A78BFA 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #EAB308;
 }
 
 .text-gradient-mesh {
-  background: linear-gradient(135deg, #E8715A 0%, #A78BFA 30%, #34D399 60%, #FBBF24 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  background-size: 200% 200%;
-  animation: shimmer 3s linear infinite;
+  color: #D92A2A;
 }
 
 .text-gradient-emerald {
-  background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #22C55E;
 }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1A1A1A;
+  background: #0A0A0A;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #383838;
-  border-radius: 4px;
+  background: #333333;
+  border: 1px solid #0A0A0A;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a4a4a;
+  background: #D92A2A;
 }
 
-/* ── Mesh Background ── */
-.mesh-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  background-image:
-    radial-gradient(at 0% 0%, rgba(232, 113, 90, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(167, 139, 250, 0.08) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(52, 211, 153, 0.04) 0px, transparent 50%);
-  opacity: 0.8;
-  pointer-events: none;
-}
-
-/* ── Geometric Accents (Bauhaus-inspired) ── */
+/* ── Geometric Accents (Bauhaus) ── */
 .geo-circle {
   position: absolute;
   border-radius: 50%;
@@ -290,22 +291,32 @@ body {
 
 .geo-line {
   position: absolute;
-  height: 2px;
+  height: 3px;
+  background: #D92A2A;
   pointer-events: none;
 }
 
 .geo-dot-grid {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}
+
+/* ── Dividers ── */
+.brutal-divider {
+  height: 3px;
+  background: #F0F0F0;
+  border: none;
+}
+
+.brutal-divider-red {
+  height: 3px;
+  background: #D92A2A;
+  border: none;
 }
 
 /* ── Animation Utilities ── */
 .animate-float-slow {
   animation: var(--animate-float-slow);
-}
-
-.animate-pulse-glow {
-  animation: var(--animate-pulse-glow);
 }
 
 .animate-shimmer {
@@ -334,11 +345,8 @@ body {
 
 /* ── Focus Visible ── */
 .focus-visible-ring:focus-visible {
-  outline: none;
-  ring: 2px;
-  ring-color: #E8715A;
-  ring-offset: 2px;
-  ring-offset-color: #1A1A1A;
+  outline: 3px solid #D92A2A;
+  outline-offset: 2px;
 }
 
 /* ── Reduced Motion ── */
@@ -351,28 +359,6 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* ── Gradient Borders ── */
-.gradient-border {
-  position: relative;
-  background: var(--color-surface);
-  border-radius: 1rem;
-}
-
-.gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 1rem;
-  background: linear-gradient(135deg, #E8715A, #A78BFA, #34D399);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: -1;
-}
-
-.gradient-border:hover::before {
-  opacity: 1;
 }
 
 /* ── Text Clamp ── */
@@ -389,11 +375,26 @@ body {
   display: none;
 }
 
-/* ── Warm Glow Accent ── */
+/* ── Brutalist Accents ── */
 .glow-terracotta {
-  box-shadow: 0 0 20px rgba(232, 113, 90, 0.15), 0 0 40px rgba(232, 113, 90, 0.05);
+  box-shadow: 4px 4px 0px 0px #D92A2A;
 }
 
 .glow-violet {
-  box-shadow: 0 0 20px rgba(167, 139, 250, 0.15), 0 0 40px rgba(167, 139, 250, 0.05);
+  box-shadow: 4px 4px 0px 0px #EAB308;
+}
+
+/* ── Mesh Background (Brutalist Grid) ── */
+.mesh-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
 }

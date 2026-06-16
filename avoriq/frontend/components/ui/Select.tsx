@@ -1,97 +1,36 @@
 "use client";
 
-import { SelectHTMLAttributes, forwardRef } from "react";
+import { SelectHTMLAttributes } from "react";
+import { cn } from "../../lib/utils";
 
-export interface SelectOption {
-  value: string;
-  label: string;
-  disabled?: boolean;
-}
-
-export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  options: { label: string; value: string }[];
   label?: string;
-  error?: string;
-  hint?: string;
-  options: SelectOption[];
-  placeholder?: string;
-  fullWidth?: boolean;
-  searchable?: boolean;
 }
 
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  (
-    {
-      label,
-      error,
-      hint,
-      options,
-      placeholder,
-      fullWidth = true,
-      className = "",
-      id,
-      ...props
-    },
-    ref
-  ) => {
-    const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
-
-    return (
-      <div className={`${fullWidth ? "w-full" : ""}`}>
-        {label && (
-          <label
-            htmlFor={selectId}
-            className="block text-sm font-medium text-slate-300 mb-2"
-          >
-            {label}
-          </label>
+export function Select({ options, label, className = "", ...props }: SelectProps) {
+  return (
+    <div className="w-full space-y-1.5">
+      {label && (
+        <label className="text-foreground text-[10px] font-black uppercase tracking-widest block">
+          {label}
+        </label>
+      )}
+      <select
+        className={cn(
+          "w-full bg-surface border-2 border-[#333] text-foreground text-sm font-medium px-4 py-3 appearance-none cursor-pointer",
+          "focus:border-bauhaus-red focus:shadow-[3px_3px_0px_0px_#D92A2A] focus:outline-none",
+          "transition-all duration-100",
+          className
         )}
-        <div className="relative">
-          <select
-            ref={ref}
-            id={selectId}
-            className={`
-              w-full glass-input rounded-xl text-white appearance-none
-              pl-4 pr-10 py-3 text-sm
-              ${error ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20" : ""}
-              ${className}
-            `}
-            aria-invalid={error ? "true" : "false"}
-            aria-describedby={error ? `${selectId}-error` : hint ? `${selectId}-hint` : undefined}
-            {...props}
-          >
-            {placeholder && (
-              <option value="" disabled>
-                {placeholder}
-              </option>
-            )}
-            {options.map((option) => (
-              <option key={option.value} value={option.value} disabled={option.disabled}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-        {error && (
-          <p id={`${selectId}-error`} className="mt-1.5 text-sm text-red-400 flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            {error}
-          </p>
-        )}
-        {hint && !error && (
-          <p id={`${selectId}-hint`} className="mt-1.5 text-sm text-slate-500">
-            {hint}
-          </p>
-        )}
-      </div>
-    );
-  }
-);
-
-Select.displayName = "Select";
+        {...props}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}

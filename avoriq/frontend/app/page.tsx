@@ -3,120 +3,138 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles, Award, Layers, Users, Clock, GraduationCap, BookOpen, Target, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import Aurora from "../components/reactbits/Aurora";
-import StarBorder from "../components/reactbits/StarBorder";
-import ShinyText from "../components/reactbits/ShinyText";
 import AnimatedContent from "../components/reactbits/AnimatedContent";
 import CountUp from "../components/reactbits/CountUp";
-import { Card, CardContent } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 
 const stats = [
-  { value: 1000, suffix: "+", label: "Scholarships Indexed", icon: Award },
-  { value: 50, suffix: "+", label: "Categories Covered", icon: Layers },
+  { value: 1000, suffix: "+", label: "Scholarships", icon: Award },
+  { value: 50, suffix: "+", label: "Categories", icon: Layers },
   { value: 6, suffix: "–PG", label: "Class Levels", icon: Users },
-  { value: 24, suffix: "×7", label: "AI Guidance", icon: Clock },
+  { value: 24, suffix: "×7", label: "AI Support", icon: Clock },
 ];
 
 const features = [
   {
-    icon: <Target className="w-6 h-6 text-terracotta" />,
+    icon: <Target className="w-7 h-7" />,
     title: "Smart Matching",
-    description: "AI-driven eligibility scoring matches your profile against 1000+ scholarships instantly."
+    description: "AI-driven eligibility scoring matches your profile against 1000+ scholarships instantly.",
   },
   {
-    icon: <BookOpen className="w-6 h-6 text-violet" />,
+    icon: <BookOpen className="w-7 h-7" />,
     title: "Complete Database",
-    description: "Government, private, NGO, and international scholarships — all verified and updated."
+    description: "Government, private, NGO, and international scholarships — all verified and updated.",
   },
   {
-    icon: <GraduationCap className="w-6 h-6 text-accent-emerald" />,
+    icon: <GraduationCap className="w-7 h-7" />,
     title: "Class 6 to PG",
-    description: "Whether you're in middle school or postgrad, find opportunities designed for your level."
+    description: "Whether you're in middle school or postgrad, find opportunities designed for your level.",
   },
   {
-    icon: <Zap className="w-6 h-6 text-accent-amber" />,
+    icon: <Zap className="w-7 h-7" />,
     title: "Deadline Alerts",
-    description: "Never miss an application window. Track, bookmark, and get reminded before dates pass."
+    description: "Never miss an application window. Track, bookmark, and get reminded before dates pass.",
   }
 ];
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background selection:bg-terracotta/20">
-      {/* Background Aurora */}
-      <div className="absolute inset-0 -z-10 opacity-25">
-        <Aurora colorStops={["#E8715A", "#A78BFA", "#1A1A1A"]} amplitude={1.0} />
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-background">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24 relative z-10">
-        {/* Hero Section */}
-        <div className="flex flex-col items-center justify-center text-center mt-12 md:mt-24">
+        {/* ══ HERO SECTION ══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mt-12 md:mt-20">
+          {/* Left: Text */}
           <AnimatedContent distance={40} direction="vertical">
-            {/* Version Badge */}
-            <Badge variant="outline" className="mb-8 px-4 py-1.5 backdrop-blur-md bg-white/5 border-white/10 gap-2">
-              <Sparkles className="w-4 h-4 text-terracotta" />
-              <span className="tracking-wide font-mono text-[11px] uppercase">Version 1.0 — Scholarship Intelligence</span>
-            </Badge>
+            <div>
+              <Badge variant="red" className="mb-8">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Version 1.0 — Scholarship Intelligence</span>
+              </Badge>
 
-            {/* Editorial Headline */}
-            <h1 className="text-white font-extrabold text-5xl sm:text-7xl lg:text-8xl tracking-tight leading-[1.05] mb-4 max-w-5xl mx-auto">
-              Find Scholarships
-            </h1>
-            <h2 className="heading-editorial text-5xl sm:text-7xl lg:text-8xl mb-8 max-w-4xl mx-auto">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-terracotta via-terracotta-light to-violet">
-                Meant For You.
-              </span>
-            </h2>
+              {/* Bauhaus Giant Typography */}
+              <h1 className="text-foreground font-black text-6xl sm:text-7xl lg:text-8xl uppercase leading-[0.9] tracking-tight mb-2">
+                FIND
+              </h1>
+              <h1 className="text-bauhaus-red font-black text-6xl sm:text-7xl lg:text-8xl uppercase leading-[0.9] tracking-tight mb-2">
+                YOUR
+              </h1>
+              <h1 className="text-foreground font-black text-6xl sm:text-7xl lg:text-8xl uppercase leading-[0.9] tracking-tight">
+                SCHOLARSHIP
+              </h1>
 
-            <p className="max-w-2xl mx-auto text-slate-400 text-lg md:text-xl leading-relaxed mb-12">
-              AvorIQ helps Indian students discover scholarships they actually qualify for before deadlines pass. Answer a few questions → get tailored matches instantly.
-            </p>
+              {/* Thick divider */}
+              <div className="w-full h-[3px] bg-foreground my-8" />
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/scholarships">
-                <StarBorder as="div" color="#E8715A" className="w-full sm:w-auto rounded-2xl">
-                  <button className="w-full sm:w-64 px-8 py-4 bg-surface/80 backdrop-blur-xl hover:bg-surface transition-all text-white text-lg font-bold flex items-center justify-center gap-3 cursor-pointer rounded-xl">
-                    <span>Explore Scholarships</span>
+              <p className="text-slate-400 text-lg leading-relaxed max-w-lg mb-10">
+                AvorIQ helps Indian students discover scholarships they actually qualify for before deadlines pass. Answer a few questions → get tailored matches instantly.
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                <Link href="/scholarships">
+                  <button className="px-8 py-4 bg-bauhaus-red text-white font-black text-sm uppercase tracking-widest border-2 border-bauhaus-red brutal-shadow hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_#D92A2A] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer flex items-center gap-3">
+                    Explore System
                     <ArrowRight className="w-5 h-5" />
                   </button>
-                </StarBorder>
-              </Link>
-              
-              <Link href="/chat">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md text-white text-lg font-semibold rounded-2xl transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                  Try AI Chat
-                </motion.button>
-              </Link>
-            </div>
-            
-            {/* Trust indicators */}
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-slate-500 text-sm">
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent-emerald" />
-                Verified official sources only
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent-emerald" />
-                No account needed to start
-              </span>
-            </div>
+                </Link>
 
-            <div className="mt-4">
-              <ShinyText text="Free to use. 1000+ scholarships indexed." speed={3} className="text-sm font-medium text-slate-500" />
+                <Link href="/chat">
+                  <button className="px-8 py-4 bg-transparent text-foreground font-black text-sm uppercase tracking-widest border-2 border-foreground hover:bg-foreground hover:text-background transition-all cursor-pointer">
+                    Try AI Chat
+                  </button>
+                </Link>
+              </div>
+
+              {/* Trust indicators */}
+              <div className="mt-8 flex flex-wrap items-center gap-6 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-accent-emerald" />
+                  Verified Sources
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-accent-emerald" />
+                  No Account Needed
+                </span>
+              </div>
+            </div>
+          </AnimatedContent>
+
+          {/* Right: Bauhaus Geometric Composition */}
+          <AnimatedContent distance={40} direction="vertical" delay={0.2}>
+            <div className="relative w-full aspect-square max-w-lg mx-auto">
+              {/* Main rectangle — Red */}
+              <div className="absolute top-0 right-0 w-[85%] h-[45%] bg-bauhaus-red border-3 border-black" />
+              
+              {/* White block */}
+              <div className="absolute bottom-[10%] left-[10%] w-[45%] h-[50%] bg-foreground border-3 border-black" />
+              
+              {/* Yellow block */}
+              <div className="absolute bottom-[10%] right-0 w-[40%] h-[50%] bg-bauhaus-yellow border-3 border-black" />
+              
+              {/* Circle overlay — dark gray */}
+              <div className="absolute top-[30%] right-[20%] w-[40%] aspect-square rounded-full bg-surface-3 border-3 border-black z-10" />
+              
+              {/* Small accent square */}
+              <div className="absolute top-[5%] left-0 w-16 h-16 bg-bauhaus-yellow border-3 border-black" />
+
+              {/* Outer frame */}
+              <div className="absolute inset-[8%] border-3 border-black pointer-events-none" />
+
+              {/* Text overlay */}
+              <div className="absolute bottom-0 left-0 z-20">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                  Form Follows Function
+                </span>
+              </div>
             </div>
           </AnimatedContent>
         </div>
 
-        {/* Stats Bar */}
+        {/* ══ STATS BAR ══ */}
         <div className="mt-32">
-          <AnimatedContent distance={40} direction="vertical" className="w-full">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 pt-8 border-t border-white/5">
+          <AnimatedContent distance={40} direction="vertical">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-2 border-[#333]">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
@@ -125,16 +143,14 @@ export default function LandingPage() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: index * 0.1, duration: 0.5 }}
-                    className="text-center group"
+                    transition={{ delay: index * 0.1, duration: 0.4 }}
+                    className={`text-center p-8 group ${index < 3 ? "border-r-2 border-[#333]" : ""} ${index < 2 ? "md:border-b-0 border-b-2 md:border-b-0 border-[#333]" : ""}`}
                   >
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl glass-panel flex items-center justify-center group-hover:bg-terracotta/10 group-hover:border-terracotta/30 transition-all duration-300">
-                      <Icon className="w-6 h-6 text-terracotta" />
-                    </div>
-                    <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                    <Icon className="w-6 h-6 text-bauhaus-red mx-auto mb-3" />
+                    <div className="text-3xl sm:text-4xl font-black text-foreground tracking-tight">
                       <CountUp to={stat.value} />{stat.suffix}
                     </div>
-                    <div className="text-slate-500 text-xs sm:text-sm uppercase tracking-wider mt-1">
+                    <div className="text-slate-500 text-[10px] uppercase tracking-widest mt-2 font-bold">
                       {stat.label}
                     </div>
                   </motion.div>
@@ -144,72 +160,35 @@ export default function LandingPage() {
           </AnimatedContent>
         </div>
 
-        {/* Features Grid */}
+        {/* ══ FEATURES GRID ══ */}
         <div className="mt-32">
-          <AnimatedContent distance={40} direction="vertical" className="w-full">
-            <div className="text-center mb-12">
-              <span className="text-terracotta text-xs font-bold uppercase tracking-wider font-mono">Why AvorIQ</span>
-              <h3 className="text-white text-3xl sm:text-4xl font-extrabold tracking-tight mt-3">
-                Intelligent Scholarship <span className="heading-editorial text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-violet">Discovery</span>
+          <AnimatedContent distance={40} direction="vertical">
+            <div className="mb-12">
+              <span className="text-bauhaus-red text-[10px] font-black uppercase tracking-[0.3em] block mb-4">Why AvorIQ</span>
+              <h3 className="text-foreground text-3xl sm:text-4xl font-black uppercase tracking-tight">
+                INTELLIGENT<br />
+                <span className="text-bauhaus-red">SCHOLARSHIP</span> DISCOVERY
               </h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0">
               {features.map((feature, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                  className="p-6 border-2 border-[#333] hover:border-bauhaus-red hover:shadow-[4px_4px_0px_0px_#D92A2A] hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all group cursor-pointer"
                 >
-                  <Card className="h-full bg-surface/40 border-white/5 hover:border-terracotta/20 hover:bg-surface/60 transition-colors group">
-                    <CardContent className="p-6 flex flex-col items-start text-left">
-                      <div className="mb-4 p-3 rounded-xl bg-white/5 group-hover:scale-110 transition-transform">
-                        {feature.icon}
-                      </div>
-                      <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                      <p className="text-slate-400 text-sm leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="mb-4 text-slate-500 group-hover:text-bauhaus-red transition-colors">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-slate-500 text-xs leading-relaxed">
+                    {feature.description}
+                  </p>
                 </motion.div>
               ))}
-            </div>
-          </AnimatedContent>
-        </div>
-        
-        {/* Showcase Chat Mockup */}
-        <div className="mt-32 relative mx-auto max-w-5xl">
-          <AnimatedContent distance={40} direction="vertical">
-            <div className="relative rounded-2xl border border-white/10 bg-surface/50 backdrop-blur-md p-2 shadow-2xl overflow-hidden aspect-video">
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10"></div>
-              <div className="w-full h-full rounded-xl bg-[#1e1e1e] border border-white/5 flex flex-col">
-                {/* Mockup Header */}
-                <div className="h-12 border-b border-white/5 flex items-center px-4 gap-2">
-                  <div className="w-3 h-3 rounded-full bg-terracotta/80"></div>
-                  <div className="w-3 h-3 rounded-full bg-accent-amber/80"></div>
-                  <div className="w-3 h-3 rounded-full bg-accent-emerald/80"></div>
-                  <div className="mx-auto text-xs text-slate-500 font-mono">avoriq.ai</div>
-                </div>
-                {/* Mockup Body */}
-                <div className="flex-1 p-6 flex flex-col gap-4 overflow-hidden relative">
-                   <div className="flex items-start gap-4">
-                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-terracotta to-violet flex-shrink-0"></div>
-                     <div className="space-y-2 flex-1">
-                       <div className="h-4 bg-white/10 rounded w-1/4"></div>
-                       <div className="h-4 bg-white/5 rounded w-3/4"></div>
-                       <div className="h-4 bg-white/5 rounded w-2/4"></div>
-                     </div>
-                   </div>
-                   <div className="flex items-start gap-4 justify-end mt-4">
-                     <div className="space-y-2 flex-1 items-end flex flex-col">
-                       <div className="h-10 bg-terracotta/10 rounded-xl w-2/3 border border-terracotta/20"></div>
-                     </div>
-                     <div className="w-8 h-8 rounded-full bg-surface-3 flex-shrink-0"></div>
-                   </div>
-                </div>
-              </div>
             </div>
           </AnimatedContent>
         </div>

@@ -19,27 +19,17 @@ export default function SavedScholarshipsPage() {
   const [progressState, setProgressState] = useLocalStorage<ProgressState>("avoriq_progress", {});
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
 
-  // Compute saved scholarships directly
   const savedScholarships = mockScholarships.filter((s) => savedIds.includes(s.id));
 
-  // Sync progress state for newly saved items
   useEffect(() => {
     const list = mockScholarships.filter((s) => savedIds.includes(s.id));
     let changed = false;
     const updatedProgress = { ...progressState };
-    
     list.forEach((s) => {
-      if (!updatedProgress[s.id]) {
-        updatedProgress[s.id] = "saved";
-        changed = true;
-      }
+      if (!updatedProgress[s.id]) { updatedProgress[s.id] = "saved"; changed = true; }
     });
-    
     if (changed) {
-      // Use setTimeout to avoid synchronous setState warning
-      const timer = setTimeout(() => {
-        setProgressState(updatedProgress);
-      }, 0);
+      const timer = setTimeout(() => setProgressState(updatedProgress), 0);
       return () => clearTimeout(timer);
     }
   }, [savedIds, progressState, setProgressState]);
@@ -50,191 +40,132 @@ export default function SavedScholarshipsPage() {
   };
 
   const handleUpdateProgress = (id: string, stage: "saved" | "vetted" | "applied" | "approved" | "disbursed") => {
-    setProgressState({
-      ...progressState,
-      [id]: stage,
-    });
-    if (stage === "disbursed") {
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.7 }
-      });
-    }
+    setProgressState({ ...progressState, [id]: stage });
+    if (stage === "disbursed") confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
   };
 
   const stages = [
     { key: "saved", label: "Saved" },
-    { key: "vetted", label: "Papers Checked" },
+    { key: "vetted", label: "Checked" },
     { key: "applied", label: "Applied" },
     { key: "approved", label: "Approved" },
-    { key: "disbursed", label: "Funds Sent" },
+    { key: "disbursed", label: "Funds" },
   ];
 
   return (
-    <div className="min-h-screen pt-28 pb-16 relative overflow-hidden">
+    <div className="min-h-screen pt-28 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
-        <div className="mb-10 text-left space-y-2">
-          <span className="text-terracotta text-xs font-bold uppercase tracking-wider block font-mono">
-            Your Dashboard
-          </span>
-          <h1 className="text-white text-3xl md:text-4xl font-extrabold tracking-tight">
-            Saved <span className="heading-editorial text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-violet">Opportunities</span>
+        <div className="mb-10 space-y-2">
+          <span className="text-bauhaus-red text-[10px] font-black uppercase tracking-[0.3em] block">Dashboard</span>
+          <h1 className="text-foreground text-3xl md:text-4xl font-black uppercase tracking-tight leading-[0.95]">
+            SAVED <span className="text-bauhaus-red">OPPORTUNITIES</span>
           </h1>
-          <p className="text-slate-400 text-sm md:text-base max-w-2xl leading-relaxed">
-            Monitor your saved scholarships, track their portal status, and simulate your application document status checklist.
+          <div className="w-24 h-[3px] bg-bauhaus-red mt-2" />
+          <p className="text-slate-500 text-sm uppercase tracking-wider font-medium">
+            Track progress from saved to funds received.
           </p>
         </div>
 
         {savedScholarships.length === 0 ? (
-          /* Empty State */
-          <div className="glass-panel p-12 max-w-xl mx-auto text-center rounded-3xl border border-white/5 space-y-6 mt-10">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-terracotta mx-auto">
-              <Bookmark className="w-8 h-8" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-white font-bold text-xl">No saved scholarships yet</h3>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
-                Explore the Match Finder to bookmark opportunities you are eligible for, and track them here.
-              </p>
-            </div>
-            <Link href="/scholarships" className="inline-block pt-2">
-              <button className="px-6 py-3 bg-gradient-to-r from-terracotta to-violet text-white text-sm font-bold rounded-xl shadow-lg hover:opacity-95 flex items-center gap-2 mx-auto cursor-pointer">
-                <span>Browse Scholarships</span>
+          <div className="p-12 max-w-xl mx-auto text-center bg-surface border-2 border-foreground brutal-shadow space-y-6 mt-10">
+            <Bookmark className="w-10 h-10 text-bauhaus-red mx-auto" />
+            <h3 className="text-foreground font-black text-lg uppercase tracking-wider">No Saved Items</h3>
+            <p className="text-slate-500 text-sm uppercase tracking-wider">
+              Explore the Match Finder to bookmark opportunities.
+            </p>
+            <Link href="/scholarships">
+              <button className="px-6 py-3 bg-bauhaus-red text-white text-xs font-black uppercase tracking-widest border-2 border-bauhaus-red hover:bg-transparent hover:text-bauhaus-red transition-all flex items-center gap-2 mx-auto cursor-pointer mt-4">
+                Browse
                 <ArrowRight className="w-4.5 h-4.5" />
               </button>
             </Link>
           </div>
         ) : (
-          /* Grid of Saved opportunities */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
-            {/* Left Column: Scholarship Cards (Span 2) */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {savedScholarships.map((s) => (
-                  <div key={s.id} className="relative group">
-                    <ScholarshipCard
-                      scholarship={s}
-                      isSaved={true}
-                      onToggleSave={(e) => handleRemove(s.id, e)}
-                      onOpenDetails={() => setSelectedScholarship(s)}
-                    />
-                    {/* Inline remove button overlay */}
-                    <button
-                      onClick={() => handleRemove(s.id)}
-                      className="absolute top-4 right-14 p-2 rounded-xl bg-white/5 hover:bg-accent-rose/10 border border-white/5 hover:border-accent-rose/20 text-slate-400 hover:text-accent-rose transition-colors"
-                      title="Remove Opportunity"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-0">
+              {savedScholarships.map((s) => (
+                <div key={s.id} className="relative group">
+                  <ScholarshipCard
+                    scholarship={s}
+                    isSaved={true}
+                    onToggleSave={(e) => handleRemove(s.id, e)}
+                    onOpenDetails={() => setSelectedScholarship(s)}
+                  />
+                  <button
+                    onClick={() => handleRemove(s.id)}
+                    className="absolute top-4 right-14 p-2 border-2 border-transparent hover:border-bauhaus-red text-slate-500 hover:text-bauhaus-red transition-colors"
+                    title="Remove"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
 
-            {/* Right Column: Application Pipeline Tracker (Span 1) */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="glass-panel p-6 rounded-3xl space-y-6 border border-white/10 sticky top-24">
-                <div>
-                  <h3 className="text-white text-base font-bold flex items-center gap-2">
-                    <LayoutDashboard className="w-5 h-5 text-terracotta" />
-                    Application Milestones
-                  </h3>
-                  <p className="text-slate-500 text-xs mt-1">
-                    Simulate your document checklists and approvals pipeline for saved items.
-                  </p>
-                </div>
+            <div className="lg:col-span-1 bg-surface border-2 border-[#333] p-6 space-y-6 sticky top-24">
+              <div>
+                <h3 className="text-foreground text-xs font-black uppercase tracking-wider flex items-center gap-2">
+                  <LayoutDashboard className="w-5 h-5 text-bauhaus-red" />
+                  Pipeline
+                </h3>
+                <p className="text-slate-600 text-[10px] uppercase tracking-wider mt-1 font-bold">
+                  Track application milestones
+                </p>
+              </div>
 
-                <div className="space-y-6">
-                  {savedScholarships.map((s) => {
-                    const currentStage = progressState[s.id] || "saved";
-                    return (
-                      <div key={s.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3.5">
-                        <span className="text-white text-xs font-bold block truncate" title={s.name}>
-                          {s.name}
-                        </span>
+              <div className="space-y-6">
+                {savedScholarships.map((s) => {
+                  const currentStage = progressState[s.id] || "saved";
+                  return (
+                    <div key={s.id} className="p-4 bg-surface-2 border-2 border-[#333] space-y-3.5">
+                      <span className="text-foreground text-[10px] font-black block truncate uppercase tracking-wider" title={s.name}>
+                        {s.name}
+                      </span>
 
-                        {/* Progress Line */}
-                        <div className="flex items-center justify-between gap-1 text-[9px] font-bold uppercase text-slate-500">
-                          {stages.map((stage, idx) => {
-                            const isCompleted = stages.findIndex((st) => st.key === currentStage) >= idx;
-                            const isCurrent = stage.key === currentStage;
-                            return (
-                              <button
-                                key={stage.key}
-                                onClick={() => handleUpdateProgress(s.id, stage.key as "saved" | "vetted" | "applied" | "approved" | "disbursed")}
-                                className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-                                  isCurrent
-                                    ? "text-terracotta scale-105 font-extrabold"
-                                    : isCompleted
-                                    ? "text-accent-emerald"
-                                    : "text-slate-600 hover:text-slate-400"
-                                }`}
-                              >
-                                <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border transition-all ${
-                                  isCurrent
-                                    ? "bg-terracotta border-terracotta text-white shadow-sm shadow-terracotta/40"
-                                    : isCompleted
-                                    ? "bg-accent-emerald/15 border-accent-emerald text-accent-emerald"
-                                    : "bg-transparent border-white/10"
-                                }`}>
-                                  {isCompleted && !isCurrent ? "✔" : ""}
-                                </div>
-                                <span className="hidden md:inline">{stage.label}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        {/* Quick feedback banner based on state */}
-                        <div className="p-2.5 rounded-lg text-2xs leading-relaxed flex items-center gap-2
-                          bg-white/[0.02] border border-white/5 text-slate-400">
-                          {currentStage === "saved" && (
-                            <>
-                              <Hourglass className="w-3.5 h-3.5 text-terracotta shrink-0 animate-spin" style={{ animationDuration: '4s' }} />
-                              <span>Check required documents and organize scans.</span>
-                            </>
-                          )}
-                          {currentStage === "vetted" && (
-                            <>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-accent-emerald shrink-0" />
-                              <span>Documents verified by AvorIQ. Ready to click 'Apply'.</span>
-                            </>
-                          )}
-                          {currentStage === "applied" && (
-                            <>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-accent-emerald shrink-0" />
-                              <span>Submitted to board portal. Pending verification.</span>
-                            </>
-                          )}
-                          {currentStage === "approved" && (
-                            <>
-                              <Sparkles className="w-3.5 h-3.5 text-violet shrink-0 animate-pulse" />
-                              <span>Board approved! Awaiting disbursement updates.</span>
-                            </>
-                          )}
-                          {currentStage === "disbursed" && (
-                            <>
-                              <Sparkles className="w-3.5 h-3.5 text-accent-emerald shrink-0" />
-                              <span className="text-accent-emerald font-bold">Funds received successfully! Congratulations! 🎉</span>
-                            </>
-                          )}
-                        </div>
+                      <div className="flex items-center justify-between gap-1 text-[8px] font-black uppercase text-slate-600">
+                        {stages.map((stage, idx) => {
+                          const isCompleted = stages.findIndex((st) => st.key === currentStage) >= idx;
+                          const isCurrent = stage.key === currentStage;
+                          return (
+                            <button
+                              key={stage.key}
+                              onClick={() => handleUpdateProgress(s.id, stage.key as any)}
+                              className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
+                                isCurrent ? "text-bauhaus-red" : isCompleted ? "text-accent-emerald" : "text-slate-700 hover:text-slate-400"
+                              }`}
+                            >
+                              <div className={`w-4 h-4 flex items-center justify-center border-2 text-[8px] font-black transition-all ${
+                                isCurrent
+                                  ? "bg-bauhaus-red border-bauhaus-red text-white"
+                                  : isCompleted
+                                  ? "bg-accent-emerald/15 border-accent-emerald text-accent-emerald"
+                                  : "bg-transparent border-[#333]"
+                              }`}>
+                                {isCompleted && !isCurrent ? "✔" : ""}
+                              </div>
+                              <span className="hidden md:inline">{stage.label}</span>
+                            </button>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-                </div>
+
+                      <div className="p-2.5 text-[10px] leading-relaxed flex items-center gap-2 bg-surface border-2 border-[#333] text-slate-500 font-bold uppercase tracking-wider">
+                        {currentStage === "saved" && <><Hourglass className="w-3.5 h-3.5 text-bauhaus-red shrink-0" /><span>Organize documents.</span></>}
+                        {currentStage === "vetted" && <><CheckCircle2 className="w-3.5 h-3.5 text-accent-emerald shrink-0" /><span>Documents verified. Ready to apply.</span></>}
+                        {currentStage === "applied" && <><CheckCircle2 className="w-3.5 h-3.5 text-accent-emerald shrink-0" /><span>Submitted. Pending verification.</span></>}
+                        {currentStage === "approved" && <><Sparkles className="w-3.5 h-3.5 text-bauhaus-yellow shrink-0" /><span>Approved! Awaiting disbursement.</span></>}
+                        {currentStage === "disbursed" && <><Sparkles className="w-3.5 h-3.5 text-accent-emerald shrink-0" /><span className="text-accent-emerald">Funds received! 🎉</span></>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-
           </div>
         )}
       </div>
 
-      {/* Details modal integration */}
       {selectedScholarship && (
         <ScholarshipDetailModal
           scholarship={selectedScholarship}

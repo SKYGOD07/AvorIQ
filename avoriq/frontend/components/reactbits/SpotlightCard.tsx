@@ -11,7 +11,7 @@ interface SpotlightCardProps {
 export default function SpotlightCard({
   children,
   className = "",
-  spotlightColor = "rgba(232, 113, 90, 0.12)" // terracotta with opacity
+  spotlightColor = "rgba(217, 42, 42, 0.15)" // Bauhaus red with opacity
 }: SpotlightCardProps) {
   const divRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);

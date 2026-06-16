@@ -1,20 +1,31 @@
+"use client";
+
 import Link from "next/link";
-import { GraduationCap, Mail, Code, Briefcase, Globe, Heart } from "lucide-react";
+import Image from "next/image";
+import { Mail, Code, Briefcase, Globe, Heart } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { siteContent } from "../data/siteContent";
 
 export default function Footer() {
+  const pathname = usePathname();
+  
+  // Hide footer on chat page
+  if (pathname?.startsWith("/chat")) {
+    return null;
+  }
+
   return (
-    <footer className="bg-navy-deep border-t border-white/5 pt-16 pb-8 relative z-10">
+    <footer className="bg-background border-t border-white/5 pt-16 pb-8 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Logo & Info */}
           <div className="space-y-4 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-white/[0.02] border border-white/10 flex items-center justify-center">
-                <img src="/logo.png" alt="AvorIQ Logo" className="w-full h-full object-cover" />
+                <Image src="/logo.svg" alt="AvorIQ Logo" width={32} height={32} className="w-full h-full object-cover" />
               </div>
               <span className="font-bold text-lg text-white">
-                Avor<span className="text-accent-purple">IQ</span>
+                Avor<span className="text-terracotta">IQ</span>
               </span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed">
@@ -29,9 +40,9 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold text-sm tracking-wider uppercase mb-4">Navigation</h3>
             <ul className="space-y-2.5">
-              {siteContent.navLinks.filter(link => link.name !== 'How It Works').map(link => (
+              {siteContent.navLinks.map(link => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-slate-400 hover:text-white text-sm transition-colors">
+                  <Link href={link.href} className="text-slate-400 hover:text-terracotta text-sm transition-colors">
                     {link.name === 'Scholarships' ? 'Find Scholarships' : link.name === 'About' ? 'About Us' : link.name}
                   </Link>
                 </li>
@@ -44,7 +55,7 @@ export default function Footer() {
             <h3 className="text-white font-semibold text-sm tracking-wider uppercase mb-4">Get in Touch</h3>
             <ul className="space-y-2.5">
               <li className="text-slate-400 text-sm flex items-center gap-2">
-                <Mail className="w-4 h-4 text-accent-blue" />
+                <Mail className="w-4 h-4 text-terracotta" />
                 <span>{siteContent.footer.email}</span>
               </li>
               <li className="text-slate-400 text-sm">
@@ -76,7 +87,7 @@ export default function Footer() {
                 placeholder="Enter email"
                 className="w-full px-3 py-2 text-sm rounded-lg glass-input text-white focus:outline-none"
               />
-              <button className="px-3 py-2 bg-accent-blue text-white rounded-lg text-sm font-semibold hover:bg-accent-blue/90 transition-colors">
+              <button className="px-3 py-2 bg-terracotta text-white rounded-lg text-sm font-semibold hover:bg-terracotta-dark transition-colors">
                 Join
               </button>
             </div>
@@ -86,7 +97,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-500 text-xs">
             &copy; {new Date().getFullYear()} AvorIQ. All rights reserved. Made with{" "}
-            <Heart className="w-3.5 h-3.5 inline-block text-rose-500 fill-rose-500 mx-0.5" /> for Indian students.
+            <Heart className="w-3.5 h-3.5 inline-block text-terracotta fill-terracotta mx-0.5" /> for Indian students.
           </p>
           <div className="flex space-x-6">
             <a href="#" className="text-slate-500 hover:text-slate-400 text-xs transition-colors">

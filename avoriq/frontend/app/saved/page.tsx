@@ -6,7 +6,7 @@ import { Scholarship } from "../../types/scholarship";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import ScholarshipCard from "../../components/ScholarshipCard";
 import ScholarshipDetailModal from "../../components/ScholarshipDetailModal";
-import { Bookmark, Sparkles, LayoutDashboard, ArrowRight, Trash2, CheckCircle2, ChevronRight, Hourglass } from "lucide-react";
+import { Bookmark, Sparkles, LayoutDashboard, ArrowRight, Trash2, CheckCircle2, Hourglass } from "lucide-react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 
@@ -17,27 +17,32 @@ interface ProgressState {
 export default function SavedScholarshipsPage() {
   const [savedIds, setSavedIds] = useLocalStorage<string[]>("avoriq_saved", []);
   const [progressState, setProgressState] = useLocalStorage<ProgressState>("avoriq_progress", {});
-  const [savedScholarships, setSavedScholarships] = useState<Scholarship[]>([]);
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
 
-  // Sync saved scholarships from ids list
+  // Compute saved scholarships directly
+  const savedScholarships = mockScholarships.filter((s) => savedIds.includes(s.id));
+
+  // Sync progress state for newly saved items
   useEffect(() => {
     const list = mockScholarships.filter((s) => savedIds.includes(s.id));
-    setSavedScholarships(list);
-
-    // Initialize progress states for newly saved items
-    const updatedProgress = { ...progressState };
     let changed = false;
+    const updatedProgress = { ...progressState };
+    
     list.forEach((s) => {
       if (!updatedProgress[s.id]) {
         updatedProgress[s.id] = "saved";
         changed = true;
       }
     });
+    
     if (changed) {
-      setProgressState(updatedProgress);
+      // Use setTimeout to avoid synchronous setState warning
+      const timer = setTimeout(() => {
+        setProgressState(updatedProgress);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [savedIds]);
+  }, [savedIds, progressState, setProgressState]);
 
   const handleRemove = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -72,11 +77,11 @@ export default function SavedScholarshipsPage() {
         
         {/* Header */}
         <div className="mb-10 text-left space-y-2">
-          <span className="text-accent-purple text-xs font-bold uppercase tracking-wider block">
+          <span className="text-terracotta text-xs font-bold uppercase tracking-wider block font-mono">
             Your Dashboard
           </span>
           <h1 className="text-white text-3xl md:text-4xl font-extrabold tracking-tight">
-            Saved Opportunities
+            Saved <span className="heading-editorial text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-violet">Opportunities</span>
           </h1>
           <p className="text-slate-400 text-sm md:text-base max-w-2xl leading-relaxed">
             Monitor your saved scholarships, track their portal status, and simulate your application document status checklist.
@@ -86,7 +91,7 @@ export default function SavedScholarshipsPage() {
         {savedScholarships.length === 0 ? (
           /* Empty State */
           <div className="glass-panel p-12 max-w-xl mx-auto text-center rounded-3xl border border-white/5 space-y-6 mt-10">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-accent-purple mx-auto">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-terracotta mx-auto">
               <Bookmark className="w-8 h-8" />
             </div>
             <div className="space-y-2">
@@ -96,7 +101,7 @@ export default function SavedScholarshipsPage() {
               </p>
             </div>
             <Link href="/scholarships" className="inline-block pt-2">
-              <button className="px-6 py-3 bg-gradient-to-r from-accent-blue to-accent-purple text-white text-sm font-bold rounded-xl shadow-lg hover:opacity-95 flex items-center gap-2 mx-auto cursor-pointer">
+              <button className="px-6 py-3 bg-gradient-to-r from-terracotta to-violet text-white text-sm font-bold rounded-xl shadow-lg hover:opacity-95 flex items-center gap-2 mx-auto cursor-pointer">
                 <span>Browse Scholarships</span>
                 <ArrowRight className="w-4.5 h-4.5" />
               </button>
@@ -120,7 +125,7 @@ export default function SavedScholarshipsPage() {
                     {/* Inline remove button overlay */}
                     <button
                       onClick={() => handleRemove(s.id)}
-                      className="absolute top-4 right-14 p-2 rounded-xl bg-white/5 hover:bg-rose-500/10 border border-white/5 hover:border-rose-500/20 text-slate-400 hover:text-rose-500 transition-colors"
+                      className="absolute top-4 right-14 p-2 rounded-xl bg-white/5 hover:bg-accent-rose/10 border border-white/5 hover:border-accent-rose/20 text-slate-400 hover:text-accent-rose transition-colors"
                       title="Remove Opportunity"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -135,7 +140,7 @@ export default function SavedScholarshipsPage() {
               <div className="glass-panel p-6 rounded-3xl space-y-6 border border-white/10 sticky top-24">
                 <div>
                   <h3 className="text-white text-base font-bold flex items-center gap-2">
-                    <LayoutDashboard className="w-5 h-5 text-accent-purple" />
+                    <LayoutDashboard className="w-5 h-5 text-terracotta" />
                     Application Milestones
                   </h3>
                   <p className="text-slate-500 text-xs mt-1">
@@ -160,20 +165,20 @@ export default function SavedScholarshipsPage() {
                             return (
                               <button
                                 key={stage.key}
-                                onClick={() => handleUpdateProgress(s.id, stage.key as any)}
+                                onClick={() => handleUpdateProgress(s.id, stage.key as "saved" | "vetted" | "applied" | "approved" | "disbursed")}
                                 className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
                                   isCurrent
-                                    ? "text-accent-blue scale-105 font-extrabold"
+                                    ? "text-terracotta scale-105 font-extrabold"
                                     : isCompleted
-                                    ? "text-emerald-400"
+                                    ? "text-accent-emerald"
                                     : "text-slate-600 hover:text-slate-400"
                                 }`}
                               >
                                 <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border transition-all ${
                                   isCurrent
-                                    ? "bg-accent-blue border-accent-blue text-white shadow-sm shadow-accent-blue/40"
+                                    ? "bg-terracotta border-terracotta text-white shadow-sm shadow-terracotta/40"
                                     : isCompleted
-                                    ? "bg-emerald-400/15 border-emerald-400 text-emerald-400"
+                                    ? "bg-accent-emerald/15 border-accent-emerald text-accent-emerald"
                                     : "bg-transparent border-white/10"
                                 }`}>
                                   {isCompleted && !isCurrent ? "✔" : ""}
@@ -189,32 +194,32 @@ export default function SavedScholarshipsPage() {
                           bg-white/[0.02] border border-white/5 text-slate-400">
                           {currentStage === "saved" && (
                             <>
-                              <Hourglass className="w-3.5 h-3.5 text-accent-blue shrink-0 animate-spin" style={{ animationDuration: '4s' }} />
+                              <Hourglass className="w-3.5 h-3.5 text-terracotta shrink-0 animate-spin" style={{ animationDuration: '4s' }} />
                               <span>Check required documents and organize scans.</span>
                             </>
                           )}
                           {currentStage === "vetted" && (
                             <>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-accent-emerald shrink-0" />
                               <span>Documents verified by AvorIQ. Ready to click 'Apply'.</span>
                             </>
                           )}
                           {currentStage === "applied" && (
                             <>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-accent-emerald shrink-0" />
                               <span>Submitted to board portal. Pending verification.</span>
                             </>
                           )}
                           {currentStage === "approved" && (
                             <>
-                              <Sparkles className="w-3.5 h-3.5 text-accent-purple shrink-0 animate-pulse" />
+                              <Sparkles className="w-3.5 h-3.5 text-violet shrink-0 animate-pulse" />
                               <span>Board approved! Awaiting disbursement updates.</span>
                             </>
                           )}
                           {currentStage === "disbursed" && (
                             <>
-                              <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                              <span className="text-emerald-400 font-bold">Funds received successfully! Congratulations! 🎉</span>
+                              <Sparkles className="w-3.5 h-3.5 text-accent-emerald shrink-0" />
+                              <span className="text-accent-emerald font-bold">Funds received successfully! Congratulations! 🎉</span>
                             </>
                           )}
                         </div>

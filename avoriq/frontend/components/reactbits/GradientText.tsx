@@ -13,7 +13,7 @@ interface GradientTextProps {
 export default function GradientText({
   children,
   className = "",
-  colors = ["#3B82F6", "#8B5CF6", "#EC4899", "#3B82F6"], // blue to purple to pink back to blue
+  colors = ["#E8715A", "#A78BFA", "#34D399", "#E8715A"], // terracotta to violet to emerald cycle
   animationSpeed = 8,
   showBorder = false,
 }: GradientTextProps) {
@@ -34,7 +34,7 @@ export default function GradientText({
             backgroundSize: "300% 100%",
           }}
         >
-          <div className="absolute inset-[2px] rounded-[calc(1.25rem-2px)] bg-navy-deep z-[-1]" />
+          <div className="absolute inset-[2px] rounded-[calc(1.25rem-2px)] bg-background z-[-1]" />
         </div>
       )}
       <div

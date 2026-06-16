@@ -1,102 +1,176 @@
 # AvorIQ 🚀
+
 **Adaptive Vision for Opportunity and Resources Intelligence Quotient**
 
 > **Your AI Learning Companion for Every Step of Student Life.**
 
-AvorIQ is a powerful, AI-driven educational second brain designed specifically for Indian students from Class 6 to Graduation. We transform information fragmentation and uncertainty into clear, personalized, and structured action.
+[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwindcss)](https://tailwindcss.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-## 🎯 The Vision
+## 🎯 The Problem
 
-Millions of deserving students in India—across rural villages, government schools, and tier-2/3 cities—miss out on life-changing opportunities because:
-- Scholarship, exam, and career information is fragmented across hundreds of disorganized portals.
-- Eligibility rules are dense, confusing, and difficult to comprehend.
-- Critical deadlines pass by unnoticed, resulting in wasted funds and missed admissions.
-- Language barriers and a lack of counseling prevent students from taking the next step.
+Millions of deserving students in India—across rural villages, government schools, and tier-2/3 cities—miss out on life-changing financial opportunities because:
 
-**AvorIQ solves this by aggregating, structuring, and matching educational opportunities specifically to the student's unique academic and socioeconomic profile.**
+- Scholarship information is **fragmented** across hundreds of disorganized government and private portals
+- Eligibility rules are **dense, confusing**, and buried in bureaucratic language
+- **Critical deadlines** pass unnoticed, resulting in wasted funds and missed admissions
+- Language barriers and lack of counseling prevent students from taking the next step
 
-We are building a fully integrated, vector-supported (RAG) assistant that responds to web, voice, and WhatsApp queries, paired with custom learning paths, exam planners, and financial matching engines.
+## 💡 Our Solution
 
----
+**AvorIQ** aggregates, structures, and intelligently matches educational opportunities to each student's unique academic and socioeconomic profile.
 
-## 🗺 The Modules (Roadmap)
+### Version 1: Scholarship Intelligence Platform *(Active)*
 
-### 🟢 Version 1: Scholarship Intelligence Platform (Active)
-A high-fidelity, client-side matching engine focused on finding the money to keep students in school.
-- **Interactive Match Finder**: Input your profile to see instant eligibility matches.
-- **Smart Filters & Tracking**: Vetted results with deadline tracking and milestone management (Saved, Applied, Vetted, Disbursed).
-- **Beautiful & Accessible UI**: A premium, ChatGPT/Claude-level interface utilizing animated components, dynamic gradients, and glassmorphism.
+A high-fidelity, AI-powered matching engine focused on helping students find the financial support they deserve:
 
-### 🟡 Phase 2: AI Study Planner (Coming Soon)
-- Custom adaptive study calendars based on exam dates (Boards, JEE, NEET).
-- Automated syllabus breakdowns mapping daily chapters to study goals.
-
-### 🟡 Phase 2: Exam Prep Assistant (Coming Soon)
-- Instant mock test grading and explanations for past year papers.
-- Weakness tracking analytics pointing out chapters that need review.
-
-### 🟡 Phase 2: WhatsApp AI Agent (Coming Soon)
-- Receive weekly eligibility matching digests.
-- Check deadlines and verify documents by messaging our WhatsApp bot.
-
-### 🟡 Phase 3: RAG & Vector Engine (Coming Soon)
-- A FastAPI backend connecting to a **PostgreSQL** database with **pgvector**.
-- **Ollama / Gemma** embeddings translating query inputs to find semantically relevant scholarships.
+| Feature | Description |
+|---------|-------------|
+| 🔍 **Smart Match Finder** | Input your profile → Get instant eligibility-scored scholarship matches |
+| 📊 **Advanced Filters** | Filter by category (Govt/Private/NGO), education level, amount, deadline |
+| 💬 **AI Chat Assistant** | Conversational AI that helps you discover and understand scholarships |
+| 📋 **Application Tracker** | Track progress from Saved → Documents Verified → Applied → Approved → Funds Received |
+| 📄 **Detailed Modals** | Complete info: eligibility, documents checklist, application steps, FAQs |
+| 🔖 **Save & Bookmark** | Shortlist opportunities and manage them from a personal dashboard |
 
 ---
 
 ## 🛠 Repository Structure
 
-This repository holds the entire multi-module vision for AvorIQ:
-
 ```
 AvorIQ-Lab/
-├── avoriq/
-│   ├── frontend/        # Active: Premium Next.js App Router (React 19, Tailwind v4, Framer Motion)
-│   ├── agents/          # Planned: Autonomous LLM routing scripts
-│   ├── backend/         # Planned: FastAPI server exposing search endpoints
-│   ├── n8n/             # Planned: Automated visual cron triggers
-│   ├── scripts/         # Planned: Python scraper crawlers
-│   └── whatsapp/        # Planned: Twilio/WhatsApp Webhook integrations
-├── datasets/            # Raw data for RAG and embeddings
-├── docs/                # Architecture diagrams and system specifications
-└── README.md            # You are here
+├── avoriq/                      # Main application monorepo
+│   ├── frontend/                # ✅ Active: Next.js 16 App Router
+│   │   ├── app/                 #    Pages (landing, scholarships, chat, about, etc.)
+│   │   ├── components/          #    UI components, marketing sections, ReactBits
+│   │   ├── data/                #    Mock scholarship dataset & site content
+│   │   ├── hooks/               #    Custom React hooks (localStorage, chatLimit)
+│   │   ├── types/               #    TypeScript interfaces
+│   │   └── public/              #    Static assets (logo, fonts)
+│   ├── backend/                 # 🔜 Planned: FastAPI + pgvector search
+│   ├── agents/                  # 🔜 Planned: LLM routing & intent detection
+│   ├── scripts/                 # 🔜 Planned: Scholarship data scrapers
+│   ├── whatsapp/                # 🔜 Planned: WhatsApp webhook integration
+│   └── n8n/                     # 🔜 Planned: Workflow automation
+├── datasets/                    # Raw data for RAG pipeline
+├── docs/                        # Architecture diagrams & specs
+├── logo/                        # Brand assets
+└── README.md                    # ← You are here
 ```
-
-*(Note: Many of these folders contain `.gitkeep` as they are staged for Phase 2 and 3 development).*
 
 ---
 
-## 💻 Tech Stack Configuration
+## 💻 Tech Stack
 
-- **Frontend**: Next.js App Router, React 19, Tailwind CSS v4, Framer Motion, React Bits.
-- **Backend & AI (Planned)**: FastAPI, Python, PostgreSQL (`pgvector`), Ollama (Gemma 2B / Llama 3 locally), n8n.
+### Frontend *(Active)*
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, React 19, TypeScript)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + Custom Design System (Warm Charcoal + Terracotta)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/) + [Canvas Confetti](https://www.npmjs.com/package/canvas-confetti)
+- **Typography**: Instrument Serif (editorial headlines) + Inter (body)
+- **Icons**: [Lucide Icons](https://lucide.dev/)
+- **State**: LocalStorage synchronization hooks
+
+### Backend & AI *(Roadmap)*
+- **Server**: FastAPI (Python)
+- **Database**: PostgreSQL + pgvector (vector similarity search)
+- **LLM Engine**: Ollama (Gemma 2B / Llama 3 locally hosted)
+- **Automation**: n8n workflow engine
 
 ---
 
 ## 🚀 Getting Started
 
-To run the active AvorIQ frontend locally:
+### Prerequisites
+- [Node.js](https://nodejs.org/) v18+ and npm
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd avoriq/frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Run Locally
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/YOUR_USERNAME/AvorIQ-Lab.git
+cd AvorIQ-Lab
+
+# 2. Navigate to the frontend
+cd avoriq/frontend
+
+# 3. Install dependencies
+npm install
+
+# 4. Start the dev server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 🗺 Product Roadmap
+
+| Phase | Module | Status |
+|-------|--------|--------|
+| **V1** | Scholarship Intelligence Platform | ✅ Active |
+| **V2** | AI Study Planner & Exam Prep | 🔜 Q4 2026 |
+| **V2** | WhatsApp AI Agent | 🔜 Q3 2026 |
+| **V2** | Mental Wellness Support | 🔜 Q3 2026 |
+| **V3** | RAG Vector Search Engine | 🔜 Q1 2027 |
+| **V3** | Career Navigator | 🔜 Q1 2027 |
+| **V3** | YouTube Learning Companion | 🔜 Q1 2027 |
+| **V4** | Community Forums | 🔜 Q2 2027 |
+| **V4** | Parent Dashboard | 🔜 Q2 2027 |
+
+---
+
+## 🎨 Design Philosophy
+
+> *"If Spotify + Duolingo + Perplexity + Notion built an education app."*
+
+- **Warm Dark Mode** — Charcoal tones (#1A1A1A), not cold navy
+- **Terracotta Accent** (#E8715A) — Unique, warm brand identity
+- **Editorial Typography** — Instrument Serif headlines + Inter body
+- **Generous Whitespace** — Claude.ai-inspired clean layouts
+- **Micro-Animations** — Tasteful motion for engagement
+- **Glassmorphism** — Frosted glass surfaces for depth
 
 ---
 
 ## ⚖ Core Values
-- **Accessibility**: Available on web and WhatsApp, supporting simple language profiles.
-- **Equity**: Intentionally designed to prioritize rural, government school, and low-income students.
-- **Trust**: Directly routing only to verified, official application websites.
+
+- **Accessibility**: Available 24/7 on web (WhatsApp coming soon), supporting simple language profiles
+- **Equity**: Intentionally designed to prioritize rural, government school, and low-income students
+- **Trust**: Only linking to verified, official application websites (.gov.in, CSR portals)
+- **Empowerment**: Removing financial barriers so students can pursue education without debt or dropouts
+
+---
+
+## 🏆 USAII Hackathon Submission
+
+This project is submitted for the **USAII Hackathon**. AvorIQ demonstrates:
+
+1. **Real-world AI Application** — Intelligent scholarship matching for underserved students
+2. **Production-Quality Frontend** — Premium design with editorial typography, animations, and responsive layouts
+3. **Scalable Architecture** — Monorepo structure ready for backend, vector search, and multi-channel AI agents
+4. **Social Impact** — Directly addressing educational inequality in India
+
+---
+
+## 👥 Team
+
+Built with ❤️ for Indian students.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

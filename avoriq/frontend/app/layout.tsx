@@ -1,18 +1,31 @@
 import type { Metadata } from "next";
-import { Outfit, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "./globals.css";
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-outfit",
-});
-
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+});
+
+// Instrument Serif for editorial display headings
+const instrumentSerif = localFont({
+  src: [
+    {
+      path: "../public/fonts/InstrumentSerif-Italic.ttf",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/InstrumentSerif-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+  variable: "--font-instrument-serif",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -34,8 +47,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full scroll-smooth">
-      <body className={`${outfit.variable} ${inter.variable} min-h-screen flex flex-col bg-background text-foreground antialiased relative font-sans`}>
+    <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning data-scroll-behavior="smooth">
+      <body className={`${inter.variable} ${instrumentSerif.variable} min-h-screen flex flex-col bg-background text-foreground antialiased relative font-sans`}>
         {/* Glow meshes background */}
         <div className="mesh-bg" />
         

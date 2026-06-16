@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Bot, Sparkles, Loader2 } from "lucide-react";
+import { User, Sparkles, LogIn, Send, Loader2, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Scholarship, StudentProfile } from "../types/scholarship";
+import Link from "next/link";
+import { Scholarship } from "../types/scholarship";
 import { mockScholarships } from "../data/scholarships";
 import ScholarshipCard from "./ScholarshipCard";
-import StarBorder from "./reactbits/StarBorder";
+import { useChatLimit } from "../hooks/useChatLimit";
 
 export interface ChatMessage {
   id: string;
-  sender: "student" | "ai";
+  sender: "user" | "ai";
   text: string;
-  results?: Scholarship[]; // Scholarships to render inline
+  results?: Scholarship[];
 }
 
 interface ChatEngineProps {
@@ -22,11 +23,12 @@ interface ChatEngineProps {
 }
 
 export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: ChatEngineProps) {
+  const { isLimitReached, incrementMessageCount } = useChatLimit();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
       sender: "ai",
-      text: "Hello! I am AvorIQ's AI Scholarship Engine. Tell me a bit about yourself (e.g., 'I am a girl studying engineering in MP' or 'My family income is below 2 lakhs') and I'll find the best opportunities for you.",
+      text: "Hello! I'm AvorIQ, your AI scholarship companion. How can I help you today? I can find scholarships, explain eligibility, or help with your applications.",
     },
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -38,48 +40,37 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
   }, [messages, isTyping]);
 
   const parseAndMatch = (query: string): Scholarship[] => {
-    // Mock Natural Language Parser
     const q = query.toLowerCase();
-    
     let matched = mockScholarships;
 
-    // Filter by Keywords
-    if (q.includes("girl") || q.includes("female") || q.includes("women")) {
+    if (q.includes("girl") || q.includes("female")) {
       matched = matched.filter((s) => s.eligibility.gender === "Female" || s.eligibility.gender === "All");
     }
-    if (q.includes("engineer") || q.includes("b.tech") || q.includes("btech")) {
+    if (q.includes("engineer") || q.includes("btech")) {
       matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Engineering") || s.eligibility.fieldsOfStudy.includes("All"));
     }
-    if (q.includes("mp") || q.includes("madhya pradesh")) {
-      matched = matched.filter((s) => s.eligibility.states.includes("Madhya Pradesh") || s.eligibility.states.includes("All India"));
-    }
-    if (q.includes("sc") || q.includes("st")) {
-      matched = matched.filter((s) => s.eligibility.castes.includes("SC") || s.eligibility.castes.includes("ST") || s.eligibility.castes.includes("All"));
-    }
-    if (q.includes("income") || q.includes("lakh") || q.includes("poor")) {
-      matched = matched.filter((s) => s.eligibility.familyIncomeMax <= 500000 && s.eligibility.familyIncomeMax > 0);
-    }
     
-    // Sort by Match Score mock (actually just sorting by Amount here for demonstration)
-    matched.sort((a, b) => b.amount - a.amount);
-    
-    // Return top 3 matches
-    return matched.slice(0, 3);
+    return matched.slice(0, 2);
   };
 
   const handleSend = () => {
     if (!inputValue.trim() || isTyping) return;
+    
+    if (isLimitReached) {
+      return; // Handled by UI overlay
+    }
 
     const userQuery = inputValue;
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
-      sender: "student",
+      sender: "user",
       text: userQuery,
     };
 
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
     setIsTyping(true);
+    incrementMessageCount();
 
     // Simulate AI Processing
     setTimeout(() => {
@@ -87,20 +78,20 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       
       const results = parseAndMatch(userQuery);
       
-      let aiText = "Here are some top opportunities I found based on your profile:";
-      if (results.length === 0) {
-        aiText = "I couldn't find any direct matches for that query. Could you provide a bit more context about your stream or location?";
+      let aiText = "I've analyzed your request. Based on the information provided, here are some relevant insights:";
+      if (results.length > 0 && (userQuery.toLowerCase().includes("scholarship") || userQuery.toLowerCase().includes("money"))) {
+          aiText = "I found some scholarship opportunities that might match your profile:";
       }
 
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: "ai",
         text: aiText,
-        results: results.length > 0 ? results : undefined,
+        results: results.length > 0 && aiText.includes("scholarship") ? results : undefined,
       };
 
       setMessages((prev) => [...prev, aiResponse]);
-    }, 1500);
+    }, 1200);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -111,52 +102,42 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
   };
 
   return (
-    <div className="flex flex-col h-full bg-navy-deep/40 rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative">
-      {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-accent-blue/5 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent-purple/5 rounded-full blur-[100px] pointer-events-none" />
-
+    <div className="flex flex-col h-full bg-transparent relative">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scrollbar-thin relative z-10">
-        <AnimatePresence initial={false}>
-          {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              className={`flex items-start gap-3 sm:gap-4 max-w-[95%] sm:max-w-[85%] ${
-                msg.sender === "student" ? "ml-auto flex-row-reverse" : "mr-auto"
-              }`}
-            >
-              {/* Avatar */}
-              <div
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg ${
-                  msg.sender === "student"
-                    ? "bg-gradient-to-br from-accent-purple to-purple-600"
-                    : "bg-gradient-to-br from-accent-blue to-blue-600"
+      <div className="flex-1 overflow-y-auto pt-8 pb-32 scrollbar-none">
+        <div className="max-w-3xl mx-auto px-4 space-y-8">
+          <AnimatePresence initial={false}>
+            {messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex gap-4 md:gap-6 ${
+                  msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                {msg.sender === "student" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
-              </div>
+                {msg.sender === "ai" && (
+                  <div className="w-8 h-8 rounded-lg bg-terracotta/10 border border-terracotta/20 flex items-center justify-center text-terracotta shrink-0 mt-1">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                )}
 
-              {/* Message Content */}
-              <div className="flex flex-col gap-3 min-w-0">
-                <div
-                  className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.sender === "student"
-                      ? "bg-accent-purple/10 text-slate-200 rounded-tr-none border border-accent-purple/20"
-                      : "bg-white/[0.03] text-slate-300 rounded-tl-none border border-white/10"
-                  }`}
-                >
-                  {msg.text}
-                </div>
+                <div className={`flex flex-col gap-4 max-w-[85%] ${msg.sender === "user" ? "items-end" : "items-start"}`}>
+                  <div
+                    className={`px-5 py-3 rounded-2xl text-[15px] leading-relaxed ${
+                      msg.sender === "user"
+                        ? "bg-white/5 border border-white/10 text-slate-200"
+                        : "bg-transparent text-slate-300"
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
 
-                {/* Inline Scholarship Cards */}
-                {msg.results && msg.results.length > 0 && (
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-2">
-                    {msg.results.map((scholarship) => (
-                      <div key={scholarship.id} className="min-w-[280px]">
+                  {msg.results && msg.results.length > 0 && (
+                    <div className="grid grid-cols-1 gap-4 w-full">
+                      {msg.results.map((scholarship) => (
                         <ScholarshipCard
+                          key={scholarship.id}
                           scholarship={scholarship}
                           isSaved={savedIds.includes(scholarship.id)}
                           onToggleSave={(e) => {
@@ -164,62 +145,117 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
                             onToggleSave(scholarship.id);
                           }}
                           onOpenDetails={() => onOpenDetails(scholarship)}
-                          matchScore={95} // Mock high match score for these results
+                          matchScore={95}
                         />
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {msg.sender === "user" && (
+                  <div className="w-8 h-8 rounded-lg bg-violet/10 border border-violet/20 flex items-center justify-center text-violet shrink-0 mt-1">
+                    <User className="w-4 h-4" />
                   </div>
                 )}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
-        {isTyping && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-4 mr-auto max-w-[85%]"
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-blue to-blue-600 flex items-center justify-center text-white shrink-0 shadow-lg">
-              <Bot className="w-5 h-5" />
+          {isTyping && (
+            <div className="flex gap-4 md:gap-6">
+              <div className="w-8 h-8 rounded-lg bg-terracotta/10 border border-terracotta/20 flex items-center justify-center text-terracotta shrink-0">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="flex items-center gap-1.5 px-2">
+                <span className="w-1.5 h-1.5 bg-terracotta/50 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                <span className="w-1.5 h-1.5 bg-terracotta/50 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-1.5 h-1.5 bg-terracotta/50 rounded-full animate-bounce" />
+              </div>
             </div>
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 rounded-tl-none flex items-center gap-2">
-              <span className="w-2 h-2 bg-accent-blue rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="w-2 h-2 bg-accent-blue rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="w-2 h-2 bg-accent-blue rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-            </div>
-          </motion.div>
-        )}
-        <div ref={chatEndRef} />
+          )}
+          <div ref={chatEndRef} />
+        </div>
       </div>
 
       {/* Input Area */}
-      <div className="p-4 sm:p-6 bg-navy-deep/80 backdrop-blur-md border-t border-white/5 relative z-10">
-        <StarBorder as="div" color="#2563EB" className="w-full">
-          <div className="relative flex items-end w-full bg-navy-card rounded-xl border border-white/5 shadow-inner">
+      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-background via-background to-transparent">
+        <div className="max-w-3xl mx-auto relative">
+          <div className="relative flex items-center bg-surface/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden group focus-within:border-terracotta/40 transition-all">
             <textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Message AvorIQ... (e.g. 'I am an engineering student looking for scholarships')"
-              className="w-full max-h-32 min-h-[56px] py-4 pl-5 pr-14 bg-transparent text-white text-sm focus:outline-none resize-none scrollbar-thin placeholder:text-slate-500"
+              placeholder="Message AvorIQ..."
+              className="w-full max-h-40 min-h-[60px] py-4.5 pl-6 pr-16 bg-transparent text-white text-[15px] focus:outline-none resize-none scrollbar-none placeholder:text-slate-500"
               rows={1}
             />
             <button
               onClick={handleSend}
-              disabled={!inputValue.trim() || isTyping}
-              className="absolute right-3 bottom-2.5 p-2 rounded-lg bg-accent-blue/10 text-accent-blue hover:bg-accent-blue hover:text-white disabled:opacity-50 disabled:bg-transparent disabled:text-slate-500 transition-all cursor-pointer"
+              disabled={!inputValue.trim() || isTyping || isLimitReached}
+              className={`absolute right-3 p-2.5 rounded-xl transition-all ${
+                inputValue.trim() && !isTyping && !isLimitReached
+                  ? "bg-terracotta text-white shadow-lg shadow-terracotta/20"
+                  : "bg-white/5 text-slate-500"
+              }`}
             >
-              {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </button>
           </div>
-        </StarBorder>
-        <p className="text-center text-[10px] text-slate-500 mt-3 flex items-center justify-center gap-1">
-          <Sparkles className="w-3 h-3 text-accent-purple" />
-          AvorIQ can make mistakes. Consider verifying important deadlines on official portals.
-        </p>
+          <p className="text-center text-[11px] text-slate-500 mt-3 font-medium">
+            AvorIQ can make mistakes. Verify important information.
+          </p>
+        </div>
       </div>
+
+      {/* Guest Limit Overlay */}
+      <AnimatePresence>
+        {isLimitReached && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-background/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="w-full max-w-md bg-surface border border-white/10 rounded-3xl p-8 shadow-2xl text-center relative overflow-hidden"
+            >
+              {/* Decorative background glow */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-violet/15 rounded-full blur-3xl" />
+              
+              <div className="w-16 h-16 bg-terracotta/10 border border-terracotta/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Zap className="w-8 h-8 text-terracotta" />
+              </div>
+              
+              <h2 className="text-2xl font-extrabold text-white mb-3">Limit Reached</h2>
+              <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+                You&apos;ve reached the free message limit for guests. Sign in to unlock unlimited messages, chat history, and premium AI features.
+              </p>
+              
+              <div className="space-y-3">
+                <Link href="/login" className="block">
+                  <button className="w-full py-4 bg-gradient-to-r from-terracotta to-violet text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-terracotta/20">
+                    <LogIn className="w-5 h-5" />
+                    Sign In to Continue
+                  </button>
+                </Link>
+                
+                <Link href="/" className="block">
+                  <button className="w-full py-4 bg-white/5 text-slate-300 rounded-xl font-semibold hover:bg-white/10 transition-all border border-white/5">
+                    Back to Home
+                  </button>
+                </Link>
+              </div>
+              
+              <div className="mt-8 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <Sparkles className="w-3 h-3 text-terracotta" />
+                Join 10,000+ users on AvorIQ
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

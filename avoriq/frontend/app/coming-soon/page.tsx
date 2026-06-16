@@ -85,12 +85,12 @@ export default function ComingSoonPage() {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-purple/10 border border-accent-purple/20 text-accent-purple rounded-full text-xs font-semibold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-terracotta/10 border border-terracotta/20 text-terracotta rounded-full text-xs font-semibold uppercase tracking-wider font-mono">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Project Roadmap</span>
           </div>
           <h1 className="text-white text-4xl sm:text-5xl font-extrabold tracking-tight">
-            Our Development Vision
+            Our Development <span className="heading-editorial text-transparent bg-clip-text bg-gradient-to-r from-terracotta to-violet">Vision</span>
           </h1>
           <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
             AvorIQ will grow to become the ultimate AI companion for Indian student life. While today we assist with scholarship intelligence, here are the modules currently in active development.
@@ -99,7 +99,7 @@ export default function ComingSoonPage() {
 
         {/* Waitlist Subscription Banner */}
         <div className="glass-panel p-8 rounded-3xl border border-white/10 max-w-3xl mx-auto mb-16 relative overflow-hidden text-center space-y-6">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-accent-blue/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-24 h-24 bg-terracotta/8 rounded-full blur-2xl pointer-events-none" />
           
           <h2 className="text-white text-xl sm:text-2xl font-bold">
             Join the AvorIQ Beta Waitlist
@@ -130,7 +130,7 @@ export default function ComingSoonPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-accent-blue to-accent-purple hover:opacity-95 text-white font-bold rounded-xl text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-terracotta to-violet hover:opacity-95 text-white font-bold rounded-xl text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>Register</span>
                   <Send className="w-4 h-4" />
@@ -140,7 +140,7 @@ export default function ComingSoonPage() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm bg-emerald-500/10 border border-emerald-500/20 py-3.5 px-6 rounded-xl w-fit mx-auto"
+                className="flex items-center justify-center gap-2 text-accent-emerald font-bold text-sm bg-accent-emerald/10 border border-accent-emerald/20 py-3.5 px-6 rounded-xl w-fit mx-auto"
               >
                 <CheckCircle2 className="w-4.5 h-4.5" />
                 <span>You have been registered for private beta! Check your email soon.</span>

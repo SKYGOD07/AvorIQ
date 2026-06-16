@@ -3,94 +3,94 @@ import { BookOpen, Compass, GraduationCap, MessageSquare, ShieldCheck, Users, Za
 export const siteContent = {
   navLinks: [
     { name: "Home", href: "/" },
+    { name: "Chat", href: "/chat" },
     { name: "Scholarships", href: "/scholarships" },
-    { name: "How It Works", href: "/#how-it-works" },
     { name: "About", href: "/about" },
     { name: "Coming Soon", href: "/coming-soon" },
   ],
   hero: {
-    tagline: "AI-Powered Opportunity Intelligence",
-    headingLine1: "Find Scholarships",
-    headingLine2: "Meant For You.",
-    description: "AvorIQ helps Indian students discover scholarships they actually qualify for before deadlines pass. No more manual searching on outdated sites.",
-    primaryCta: "Explore Scholarships",
+    tagline: "Your AI Second Brain",
+    headingLine1: "AvorIQ Intelligence",
+    headingLine2: "Redefined.",
+    description: "AvorIQ is your all-in-one AI assistant designed to simplify complex student journeys. From scholarship matching to personalized research, get the answers you need instantly.",
+    primaryCta: "Try AvorIQ",
     secondaryCta: "Watch Demo",
   },
   stats: [
-    { value: "1,000+", label: "Scholarships Indexed" },
-    { value: "50+", label: "Categories Covered" },
-    { value: "Class 6 to PG", label: "Academic Coverage" },
-    { value: "24×7", label: "AI Match Guidance" },
+    { value: "10k+", label: "Active Users" },
+    { value: "99.9%", label: "Accuracy" },
+    { value: "24/7", label: "Availability" },
+    { value: "Free", label: "For Everyone" },
   ],
   howItWorks: {
-    badge: "Simplified Pipeline",
-    title: "How AvorIQ Works",
-    description: "Discovering and applying for student aid is now simplified down to three streamlined steps.",
+    badge: "How it works",
+    title: "Simple. Intelligent. Fast.",
+    description: "Start chatting with AvorIQ to discover insights, find opportunities, and organize your academic life.",
     steps: [
       {
         num: "01",
-        title: "Tell Us About Yourself",
-        desc: "Input your academic level, family income, state domicile, and social category in our simple Finder form.",
-        icon: Users,
+        title: "Ask Anything",
+        desc: "Type your query about scholarships, career paths, or academic topics in natural language.",
+        icon: MessageSquare,
       },
       {
         num: "02",
-        title: "Instant AI Matching",
-        desc: "Our engine scans hundreds of options to find the specific scholarships you are 100% eligible for.",
+        title: "AI Analysis",
+        desc: "Our engine processes your request against thousands of verified data points and intelligent models.",
         icon: Zap,
       },
       {
         num: "03",
-        title: "Never Miss a Deadline",
-        desc: "Save your favorite scholarships, monitor deadline status, and get notifications when portals open.",
+        title: "Get Results",
+        desc: "Receive instant, tailored responses and actionable insights to move your goals forward.",
         icon: ShieldCheck,
       },
     ]
   },
   aboutPreview: {
     badge: "Our Mission",
-    title: "Ensuring No Student Misses Opportunities Due to Lack of Information.",
+    title: "Democratizing Access to Intelligence and Opportunities.",
     paragraphs: [
-      "Hundreds of crores of scholarship funds lapse every year in India simply because deserving students in Tier-2/3 cities and rural villages are unaware they qualify, or fail to complete complex applications before deadlines.",
-      "AvorIQ is built to bridge this gap. Starting with our Scholarship Intelligence Platform, we aggregate, translate, and match verified opportunities specifically to your academic profile."
+      "We believe that every student deserves access to high-quality information and resources, regardless of their location or background.",
+      "AvorIQ is more than just a chatbot; it's a personalized intelligence platform that grows with you, helping you navigate the complexities of education and career building."
     ],
-    cta: "Read the Full Story",
+    cta: "Read Our Vision",
     highlights: [
-      { title: "Accessibility", desc: "Available for Class 6 to Graduation anywhere." },
-      { title: "Trust", desc: "Directly linking only to verified official platforms." },
-      { title: "Equity", desc: "Prioritizing support for low-income backgrounds." },
-      { title: "Empowerment", desc: "Helping you finance your educational dreams." }
+      { title: "Intelligence", desc: "Powered by advanced models for deep analysis." },
+      { title: "Personalization", desc: "Responses tailored specifically to your profile." },
+      { title: "Efficiency", desc: "Save hundreds of hours in manual research." },
+      { title: "Global Scale", desc: "Designed for students everywhere, starting with India." }
     ]
   },
   comingSoon: {
-    badge: "Future Roadmap",
-    title: "Next-Gen Modules Coming Soon",
-    description: "AvorIQ will soon expand into a complete AI educational companion for student life. Here's what we are building next.",
-    cta: "View Full Coming Soon Roadmap",
+    badge: "Next Steps",
+    title: "Expanding the AvorIQ Ecosystem",
+    description: "We are constantly evolving to provide more value to our users. Here's what's on the horizon.",
+    cta: "View Roadmap",
     modules: [
       {
-        title: "AI Study Planner",
-        desc: "Generate personalized study schedules tailored to your exams and learning habits.",
-        icon: BookOpen,
+        title: "Collaborative Chats",
+        desc: "Share chats and insights with teammates or mentors in real-time.",
+        icon: Users,
       },
       {
-        title: "Career Guidance",
-        desc: "Input your interests to receive step-by-step career path roadmaps and skill requirements.",
+        title: "Deep Research Mode",
+        desc: "Extended analysis for complex academic and professional projects.",
         icon: Compass,
       },
       {
-        title: "WhatsApp Chatbot",
-        desc: "Get scholarship alerts and ask questions directly from your phone on WhatsApp.",
-        icon: MessageSquare,
+        title: "Voice Integration",
+        desc: "Interact with AvorIQ using natural voice commands for hands-free assistance.",
+        icon: Zap,
       },
     ]
   },
   footer: {
     description: "Adaptive Vision for Opportunity and Resources Intelligence Quotient.",
-    slogan: "\"Built for students. Designed for opportunity.\"",
-    email: "support@avoriq.in",
-    location: "Based in Madhya Pradesh, India.",
-    newsletterTitle: "Subscribe to Deadlines",
-    newsletterDesc: "Get notified of matching national & private scholarships directly in your inbox before deadlines close.",
+    slogan: "\"Intelligence for all.\"",
+    email: "hello@avoriq.ai",
+    location: "Global Presence. Built in India.",
+    newsletterTitle: "Stay Updated",
+    newsletterDesc: "Get the latest on AI features and educational opportunities delivered to your inbox.",
   }
 } as const;

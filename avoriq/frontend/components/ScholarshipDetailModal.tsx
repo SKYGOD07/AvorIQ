@@ -51,7 +51,7 @@ export default function ScholarshipDetailModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-navy-deep/75 backdrop-blur-md"
+          className="absolute inset-0 bg-background/80 backdrop-blur-md"
         />
 
         {/* Modal Panel */}
@@ -60,12 +60,12 @@ export default function ScholarshipDetailModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", duration: 0.4 }}
-          className="relative w-full max-w-3xl h-[85vh] bg-navy-card border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10"
+          className="relative w-full max-w-3xl h-[85vh] bg-surface border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10"
         >
           {/* Header */}
           <div className="p-6 border-b border-white/5 flex items-start justify-between bg-gradient-to-b from-white/[0.02] to-transparent">
             <div className="space-y-1">
-              <span className="px-2.5 py-0.5 text-[10px] font-bold tracking-wider rounded-md inline-block uppercase bg-accent-blue/15 border border-accent-blue/20 text-accent-blue">
+              <span className="px-2.5 py-0.5 text-[10px] font-bold tracking-wider rounded-md inline-block uppercase bg-terracotta/15 border border-terracotta/20 text-terracotta">
                 {scholarship.category} Scholarship
               </span>
               <h2 className="text-white text-xl md:text-2xl font-bold leading-snug mt-2">
@@ -130,7 +130,7 @@ export default function ScholarshipDetailModal({
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                     activeTab === tab.id
-                      ? "bg-accent-purple/15 text-accent-purple border border-accent-purple/25"
+                      ? "bg-terracotta/15 text-terracotta border border-terracotta/25"
                       : "text-slate-400 hover:text-white hover:bg-white/[0.02]"
                   }`}
                 >
@@ -153,7 +153,7 @@ export default function ScholarshipDetailModal({
                 </div>
 
                 <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                  <h4 className="text-white font-bold text-sm flex items-center gap-2 text-accent-purple">
+                  <h4 className="text-white font-bold text-sm flex items-center gap-2 text-terracotta">
                     <Award className="w-4.5 h-4.5" />
                     Coverage & Financial Benefits
                   </h4>
@@ -233,7 +233,7 @@ export default function ScholarshipDetailModal({
                       key={idx}
                       className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-sm text-slate-300"
                     >
-                      <div className="w-5 h-5 rounded-md bg-accent-blue/15 flex items-center justify-center text-accent-blue font-bold text-[10px]">
+                      <div className="w-5 h-5 rounded-md bg-terracotta/15 flex items-center justify-center text-terracotta font-bold text-[10px]">
                         {idx + 1}
                       </div>
                       <span>{doc}</span>
@@ -256,21 +256,21 @@ export default function ScholarshipDetailModal({
                   <h3 className="text-white font-bold text-base">Step-by-Step Application Guide</h3>
                   <div className="relative border-l border-white/10 pl-6 ml-3 space-y-6">
                     <div className="relative">
-                      <div className="absolute -left-[30px] top-0 w-4.5 h-4.5 rounded-full bg-accent-purple border-4 border-navy-card" />
+                      <div className="absolute -left-[30px] top-0 w-4.5 h-4.5 rounded-full bg-violet border-4 border-surface" />
                       <h4 className="text-white font-semibold text-sm">Step 1: Check Eligibility</h4>
                       <p className="text-slate-400 text-xs mt-1">
                         Read through the criteria list under our "Eligibility" tab to verify you fulfill the conditions.
                       </p>
                     </div>
                     <div className="relative">
-                      <div className="absolute -left-[30px] top-0 w-4.5 h-4.5 rounded-full bg-accent-blue border-4 border-navy-card" />
+                      <div className="absolute -left-[30px] top-0 w-4.5 h-4.5 rounded-full bg-terracotta border-4 border-surface" />
                       <h4 className="text-white font-semibold text-sm">Step 2: Scan Official Papers</h4>
                       <p className="text-slate-400 text-xs mt-1">
                         Prepare PDF copies of your marksheet, family income proof, Samagra/Aadhaar card, and college admission fee slips.
                       </p>
                     </div>
                     <div className="relative">
-                      <div className="absolute -left-[30px] top-0 w-4.5 h-4.5 rounded-full bg-emerald-500 border-4 border-navy-card" />
+                      <div className="absolute -left-[30px] top-0 w-4.5 h-4.5 rounded-full bg-accent-emerald border-4 border-surface" />
                       <h4 className="text-white font-semibold text-sm">Step 3: Click 'Apply Online'</h4>
                       <p className="text-slate-400 text-xs mt-1">
                         Use AvorIQ's portal integration to navigate to the official board site and submit your application form.
@@ -289,7 +289,7 @@ export default function ScholarshipDetailModal({
                     {scholarship.faqs.map((faq, idx) => (
                       <div key={idx} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
                         <h4 className="text-white font-bold text-sm flex items-start gap-2">
-                          <span className="text-accent-purple font-mono">Q.</span>
+                          <span className="text-violet font-mono">Q.</span>
                           {faq.question}
                         </h4>
                         <p className="text-slate-400 text-sm leading-relaxed pl-5">
@@ -311,7 +311,7 @@ export default function ScholarshipDetailModal({
               onClick={onToggleSave}
               className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 isSaved
-                  ? "bg-accent-blue/10 border border-accent-blue/20 text-accent-blue hover:bg-accent-blue/15"
+                  ? "bg-terracotta/10 border border-terracotta/20 text-terracotta hover:bg-terracotta/15"
                   : "bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5"
               }`}
             >
@@ -348,7 +348,7 @@ export default function ScholarshipDetailModal({
                 <button
                   onClick={handleApply}
                   disabled={applying}
-                  className="relative flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-accent-blue to-accent-purple shadow-md hover:opacity-95 cursor-pointer disabled:opacity-50"
+                  className="relative flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-terracotta to-violet shadow-md hover:opacity-95 cursor-pointer disabled:opacity-50"
                 >
                   {applying ? (
                     <>

@@ -27,14 +27,14 @@ export default function ComingSoonCard({
       className="glass-panel glass-panel-hover p-6 rounded-2xl relative overflow-hidden flex flex-col justify-between h-full group"
     >
       {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-24 h-24 bg-accent-purple/10 rounded-full blur-2xl group-hover:bg-accent-purple/20 transition-all duration-500 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-24 h-24 bg-violet/8 rounded-full blur-2xl group-hover:bg-terracotta/15 transition-all duration-500 pointer-events-none" />
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-accent-purple group-hover:text-accent-blue transition-colors duration-300">
+          <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-violet group-hover:text-terracotta transition-colors duration-300">
             <IconComponent className="w-6 h-6" />
           </div>
-          <span className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-accent-purple/10 border border-accent-purple/20 text-accent-purple rounded-full">
+          <span className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase bg-violet/10 border border-violet/20 text-violet rounded-full font-mono">
             Coming Soon
           </span>
         </div>

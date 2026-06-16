@@ -35,7 +35,7 @@ export default function StarBorder({
           animationDuration: speed,
         }}
       ></div>
-      <div className="relative z-1 bg-gradient-to-b from-navy-card to-navy-deep border border-white/10 rounded-[20px]">
+      <div className="relative z-1 bg-gradient-to-b from-surface to-background border border-white/10 rounded-[20px]">
         {children}
       </div>
       

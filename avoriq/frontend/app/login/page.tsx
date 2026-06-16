@@ -18,32 +18,32 @@ export default function LoginPage() {
     e.preventDefault();
     // Mock authentication
     setAuthToken(`mock-token-${Date.now()}`);
-    router.push("/scholarships");
+    router.push("/chat");
   };
 
   const handleSocialLogin = () => {
     // Mock social authentication
     setAuthToken(`mock-token-social-${Date.now()}`);
-    router.push("/scholarships");
+    router.push("/chat");
   };
 
   return (
     <div className="min-h-screen relative flex items-center justify-center overflow-hidden pt-20">
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <Aurora colorStops={["#0B1120", "#1e1b4b", "#0f172a"]} amplitude={0.8} />
+        <Aurora colorStops={["#1A1A1A", "#2D2D2D", "#1A1A1A"]} amplitude={0.8} />
       </div>
 
       <div className="relative z-10 w-full max-w-md px-4">
         <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
           {/* Decorative Glow */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-accent-purple/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent-blue/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-terracotta/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet/15 rounded-full blur-3xl pointer-events-none" />
 
           {/* Header */}
           <div className="text-center mb-8 relative z-10">
             <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl mx-auto flex items-center justify-center mb-4">
-              <Sparkles className="w-6 h-6 text-accent-purple" />
+              <Sparkles className="w-6 h-6 text-terracotta" />
             </div>
             <h1 className="text-white text-2xl font-extrabold tracking-tight">
               {isLogin ? "Welcome back to AvorIQ" : "Join AvorIQ"}
@@ -65,7 +65,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-white/[0.02] border border-white/10 rounded-xl text-white text-sm focus:border-accent-purple focus:ring-1 focus:ring-accent-purple transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-white/[0.02] border border-white/10 rounded-xl text-white text-sm focus:border-terracotta focus:ring-1 focus:ring-terracotta transition-all outline-none"
                 />
               </div>
             </div>
@@ -80,15 +80,15 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 bg-white/[0.02] border border-white/10 rounded-xl text-white text-sm focus:border-accent-purple focus:ring-1 focus:ring-accent-purple transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-white/[0.02] border border-white/10 rounded-xl text-white text-sm focus:border-terracotta focus:ring-1 focus:ring-terracotta transition-all outline-none"
                 />
               </div>
             </div>
 
-            <StarBorder as="div" color="#7C3AED" className="w-full mt-6">
+            <StarBorder as="div" color="#E8715A" className="w-full mt-6">
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-navy-card shadow-[0_0_15px_rgba(124,58,237,0.2)] hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] hover:bg-navy-card/80 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-surface shadow-[0_0_15px_rgba(232,113,90,0.2)] hover:shadow-[0_0_25px_rgba(232,113,90,0.4)] hover:bg-surface/80 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isLogin ? "Sign In" : "Create Account"}
                 <ArrowRight className="w-4 h-4" />
@@ -128,7 +128,7 @@ export default function LoginPage() {
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-accent-purple font-semibold hover:text-white transition-colors cursor-pointer"
+              className="text-terracotta font-semibold hover:text-white transition-colors cursor-pointer"
             >
               {isLogin ? "Sign Up" : "Sign In"}
             </button>

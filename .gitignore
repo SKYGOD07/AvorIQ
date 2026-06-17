@@ -55,6 +55,7 @@ ollama-models/manifests/
 # ── Docker Persistent Volumes ──
 docker-data/
 postgres/
+avoriq/backend/data/
 
 # ── Backups (local only) ──
 backups/

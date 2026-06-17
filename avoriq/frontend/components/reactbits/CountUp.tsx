@@ -8,7 +8,6 @@ interface CountUpProps {
   from?: number;
   direction?: "up" | "down";
   delay?: number;
-  duration?: number;
   className?: string;
   startWhen?: boolean;
   separator?: string;
@@ -22,7 +21,6 @@ export default function CountUp({
   from = 0,
   direction = "up",
   delay = 0,
-  duration = 2,
   className = "",
   startWhen = true,
   separator = "",

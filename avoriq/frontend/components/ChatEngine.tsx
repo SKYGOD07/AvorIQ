@@ -1,19 +1,23 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { User, Sparkles, LogIn, Send, Loader2, Zap } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { LogIn, Send, Loader2, Zap, Wifi, WifiOff, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Scholarship } from "../types/scholarship";
 import { mockScholarships, indianStates } from "../data/scholarships";
 import ScholarshipCard from "./ScholarshipCard";
 import { useChatLimit } from "../hooks/useChatLimit";
+import { sendChatMessage, checkBackendHealth } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 export interface ChatMessage {
   id: string;
   sender: "user" | "ai";
   text: string;
   results?: Scholarship[];
+  isStreaming?: boolean;
 }
 
 interface ChatEngineProps {
@@ -24,7 +28,9 @@ interface ChatEngineProps {
 
 export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: ChatEngineProps) {
   const { isLimitReached, incrementMessageCount } = useChatLimit();
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const { userProfile } = useAuth();
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
+  const [messages, setMessages] = useLocalStorage<ChatMessage[]>("avoriq_chat_history", [
     {
       id: "1",
       sender: "ai",
@@ -35,6 +41,36 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Clean up any hanging streaming indicators on load
+  useEffect(() => {
+    setMessages((prev) => {
+      const hasStreaming = prev.some((m) => m.isStreaming);
+      if (hasStreaming) {
+        return prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m));
+      }
+      return prev;
+    });
+  }, []);
+
+  // Check backend health on mount
+  useEffect(() => {
+    checkBackendHealth().then((online) => {
+      setIsBackendOnline(online);
+      if (online) {
+        setMessages((prev) => {
+          if (prev.length <= 1) {
+            return [{
+              id: "1",
+              sender: "ai",
+              text: "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships.",
+            }];
+          }
+          return prev;
+        });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -48,21 +84,18 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const parseAndMatch = (query: string): Scholarship[] => {
+  // ── Mock fallback logic (original parseAndMatch) ──
+  const parseAndMatch = useCallback((query: string): Scholarship[] => {
     const q = query.toLowerCase();
     
-    // Check if the query is a simple greeting
     const greetings = ["hi", "hello", "hey", "hola", "greetings", "good morning", "good afternoon", "good evening"];
     const isGreetingOnly = greetings.some(g => q.trim() === g || q.trim().startsWith(g + " "));
-    if (isGreetingOnly) {
-      return [];
-    }
+    if (isGreetingOnly) return [];
 
     let matched = mockScholarships;
     let filterApplied = false;
 
-    // Filter by Gender
-    if (q.includes("girl") || q.includes("female") || q.includes("women") || q.includes("girl's") || q.includes("girls")) {
+    if (q.includes("girl") || q.includes("female") || q.includes("women") || q.includes("girls")) {
       matched = matched.filter((s) => s.eligibility.gender === "Female" || s.eligibility.gender === "All");
       filterApplied = true;
     } else if (q.includes("boy") || q.includes("male") || q.includes("boys")) {
@@ -70,113 +103,68 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       filterApplied = true;
     }
 
-    // Filter by Field of Study
     if (q.includes("engineer") || q.includes("btech") || q.includes("engineering") || q.includes("tech") || q.includes("computer")) {
       matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Engineering") || s.eligibility.fieldsOfStudy.includes("All"));
       filterApplied = true;
-    } else if (q.includes("medical") || q.includes("mbbs") || q.includes("doctor") || q.includes("dental") || q.includes("nursing") || q.includes("healthcare")) {
+    } else if (q.includes("medical") || q.includes("mbbs") || q.includes("doctor")) {
       matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Medical") || s.eligibility.fieldsOfStudy.includes("All"));
       filterApplied = true;
-    } else if (q.includes("science") || q.includes("bsc") || q.includes("msc") || q.includes("stem")) {
+    } else if (q.includes("science") || q.includes("bsc")) {
       matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Science") || s.eligibility.fieldsOfStudy.includes("All"));
       filterApplied = true;
-    } else if (q.includes("commerce") || q.includes("bcom") || q.includes("mcom") || q.includes("account")) {
+    } else if (q.includes("commerce") || q.includes("bcom")) {
       matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Commerce") || s.eligibility.fieldsOfStudy.includes("All"));
-      filterApplied = true;
-    } else if (q.includes("arts") || q.includes("humanities") || q.includes("ba") || q.includes("ma")) {
-      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Arts") || s.eligibility.fieldsOfStudy.includes("All"));
-      filterApplied = true;
-    } else if (q.includes("management") || q.includes("mba") || q.includes("bba") || q.includes("business")) {
-      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Management") || s.eligibility.fieldsOfStudy.includes("All"));
-      filterApplied = true;
-    } else if (q.includes("law") || q.includes("llb") || q.includes("legal")) {
-      matched = matched.filter((s) => s.eligibility.fieldsOfStudy.includes("Law") || s.eligibility.fieldsOfStudy.includes("All"));
       filterApplied = true;
     }
 
-    // Filter by Education Level
-    if (q.includes("postgrad") || q.includes("postgraduate") || q.includes("pg") || q.includes("master") || q.includes("phd") || q.includes("mtech") || q.includes("mba")) {
+    if (q.includes("postgrad") || q.includes("pg") || q.includes("master")) {
       matched = matched.filter((s) => s.eligibility.educationLevel.includes("PG"));
       filterApplied = true;
-    } else if (q.includes("undergrad") || q.includes("undergraduate") || q.includes("ug") || q.includes("bachelor") || q.includes("btech") || q.includes("bsc") || q.includes("bcom") || q.includes("mbbs")) {
+    } else if (q.includes("undergrad") || q.includes("ug") || q.includes("bachelor")) {
       matched = matched.filter((s) => s.eligibility.educationLevel.includes("UG"));
       filterApplied = true;
     } else if (q.includes("diploma")) {
       matched = matched.filter((s) => s.eligibility.educationLevel.includes("Diploma"));
       filterApplied = true;
-    } else if (q.includes("school") || q.includes("class 6") || q.includes("class 7") || q.includes("class 8") || q.includes("class 9") || q.includes("class 10") || q.includes("middle school")) {
-      matched = matched.filter((s) => s.eligibility.educationLevel.includes("Class 6–10"));
-      filterApplied = true;
-    } else if (q.includes("class 11") || q.includes("class 12") || q.includes("high school") || q.includes("puc") || q.includes("junior college")) {
-      matched = matched.filter((s) => s.eligibility.educationLevel.includes("Class 11–12"));
-      filterApplied = true;
     }
 
-    // Filter by Category
-    if (q.includes("govt") || q.includes("government") || q.includes("ministry") || q.includes("state")) {
+    if (q.includes("govt") || q.includes("government")) {
       matched = matched.filter((s) => s.category === "Government");
       filterApplied = true;
-    } else if (q.includes("private") || q.includes("bank") || q.includes("company") || q.includes("corporate")) {
+    } else if (q.includes("private")) {
       matched = matched.filter((s) => s.category === "Private");
       filterApplied = true;
-    } else if (q.includes("ngo") || q.includes("trust") || q.includes("foundation")) {
+    } else if (q.includes("ngo") || q.includes("trust")) {
       matched = matched.filter((s) => s.category === "NGO" || s.category === "Private");
-      filterApplied = true;
-    } else if (q.includes("international") || q.includes("abroad") || q.includes("uk") || q.includes("study abroad") || q.includes("foreign")) {
-      matched = matched.filter((s) => s.category === "International");
       filterApplied = true;
     }
 
-    // Filter by Caste / Category
-    if (q.includes("general") || q.includes("open")) {
-      matched = matched.filter((s) => s.eligibility.castes.includes("General"));
+    if (q.includes("sc ") || q.includes(" sc") || q === "sc") {
+      matched = matched.filter((s) => s.eligibility.castes.includes("SC"));
+      filterApplied = true;
+    } else if (q.includes("st ") || q.includes(" st") || q === "st") {
+      matched = matched.filter((s) => s.eligibility.castes.includes("ST"));
       filterApplied = true;
     } else if (q.includes("obc")) {
       matched = matched.filter((s) => s.eligibility.castes.includes("OBC"));
       filterApplied = true;
-    } else if (q.includes("sc")) {
-      matched = matched.filter((s) => s.eligibility.castes.includes("SC"));
-      filterApplied = true;
-    } else if (q.includes("st")) {
-      matched = matched.filter((s) => s.eligibility.castes.includes("ST"));
-      filterApplied = true;
-    } else if (q.includes("ews")) {
-      matched = matched.filter((s) => s.eligibility.castes.includes("EWS"));
-      filterApplied = true;
     }
 
-    // Filter by specific state names
     const matchedState = indianStates.find(state => q.includes(state.toLowerCase()));
     if (matchedState) {
       matched = matched.filter(s => s.eligibility.states.includes("All") || s.eligibility.states.includes(matchedState));
       filterApplied = true;
     }
 
-    if (filterApplied) {
-      return matched;
-    }
+    if (filterApplied) return matched;
 
-    // If query contains general words indicating they are looking for general scholarships
-    const isSeekingGeneral = q.includes("scholarship") || q.includes("scholarships") || q.includes("opportunity") || q.includes("opportunities") || q.includes("list") || q.includes("show") || q.includes("find") || q.includes("money") || q.includes("grant");
-    if (isSeekingGeneral) {
-      return mockScholarships;
-    }
+    const isSeekingGeneral = q.includes("scholarship") || q.includes("find") || q.includes("show") || q.includes("list");
+    if (isSeekingGeneral) return mockScholarships;
 
     return [];
-  };
+  }, []);
 
-  const handleSend = () => {
-    if (!inputValue.trim() || isTyping) return;
-    if (isLimitReached) return;
-
-    const userQuery = inputValue;
-    const newMessage: ChatMessage = { id: Date.now().toString(), sender: "user", text: userQuery };
-
-    setMessages((prev) => [...prev, newMessage]);
-    setInputValue("");
-    setIsTyping(true);
-    incrementMessageCount();
-
+  const fallbackToMock = useCallback((userQuery: string) => {
     setTimeout(() => {
       setIsTyping(false);
       const results = parseAndMatch(userQuery);
@@ -193,15 +181,132 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
         aiText = "// ANALYSIS COMPLETE.\n// No matching scholarships found for your query.\n// Try searching using other keywords (e.g. 'girls', 'engineering', 'government', 'UG', 'caste SC').";
       }
 
-      const aiResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        sender: "ai",
-        text: aiText,
-        results: results.length > 0 && !isGreeting ? results.slice(0, 3) : undefined,
-      };
-      setMessages((prev) => [...prev, aiResponse]);
+      setMessages((prev) => {
+        const shownIds = new Set<string>();
+        prev.forEach((m) => {
+          if (m.results) {
+            m.results.forEach((s) => shownIds.add(s.id));
+          }
+        });
+        const filteredResults = results.filter((s) => !shownIds.has(s.id));
+        const finalResults = filteredResults.length > 0 && !isGreeting ? filteredResults.slice(0, 3) : undefined;
+
+        const aiResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: "ai",
+          text: aiText,
+          results: finalResults,
+        };
+        return [...prev, aiResponse];
+      });
     }, 1200);
-  };
+  }, [parseAndMatch, setMessages]);
+
+  // ── Handle sending (AI backend or fallback) ──
+  const handleSend = useCallback(async () => {
+    if (!inputValue.trim() || isTyping) return;
+    if (isLimitReached) return;
+
+    const userQuery = inputValue;
+    const newMessage: ChatMessage = { id: Date.now().toString(), sender: "user", text: userQuery };
+
+    // Find the most recent AI message that has results (scholarships) shown
+    let activeScholarships: Scholarship[] | null = null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].sender === "ai" && messages[i].results && messages[i].results.length > 0) {
+        activeScholarships = messages[i].results || null;
+        break;
+      }
+    }
+
+    setMessages((prev) => [...prev, newMessage]);
+    setInputValue("");
+    setIsTyping(true);
+    incrementMessageCount();
+
+    // ── Try AI backend first ──
+    if (isBackendOnline) {
+      const aiMsgId = (Date.now() + 1).toString();
+      let streamedText = "";
+
+      // Add an empty AI message that we'll stream into
+      setMessages((prev) => [...prev, {
+        id: aiMsgId,
+        sender: "ai",
+        text: "",
+        isStreaming: true,
+      }]);
+
+      try {
+        await sendChatMessage(
+          userQuery,
+          userProfile ? {
+            educationLevel: userProfile.educationLevel,
+            gender: userProfile.gender,
+            familyIncomeMax: userProfile.familyIncomeMax,
+            state: userProfile.state,
+            caste: userProfile.caste,
+          } : null,
+          {
+            onScholarships: (scholarships) => {
+              // Only show scholarship cards if backend sent non-empty array
+              // Filter out scholarships that have already been shown in previous messages of this conversation.
+              setMessages((prev) => {
+                const shownIds = new Set<string>();
+                prev.forEach((m) => {
+                  if (m.id !== aiMsgId && m.results) {
+                    m.results.forEach((s) => shownIds.add(s.id));
+                  }
+                });
+
+                const filtered = scholarships
+                  ? scholarships.filter((s) => !shownIds.has(s.id))
+                  : [];
+
+                return prev.map((m) =>
+                  m.id === aiMsgId
+                    ? { ...m, results: filtered.length > 0 ? filtered : undefined }
+                    : m
+                );
+              });
+            },
+            onToken: (token) => {
+              streamedText += token;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === aiMsgId ? { ...m, text: streamedText } : m
+                )
+              );
+            },
+            onDone: () => {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === aiMsgId ? { ...m, isStreaming: false } : m
+                )
+              );
+              setIsTyping(false);
+            },
+            onError: (error) => {
+              // If streaming fails, fall back to mock
+              console.error("Chat API error:", error);
+              setMessages((prev) => prev.filter((m) => m.id !== aiMsgId));
+              setIsBackendOnline(false);
+              fallbackToMock(userQuery);
+            },
+          },
+          activeScholarships
+        );
+      } catch {
+        // Network error — fall back to mock
+        setMessages((prev) => prev.filter((m) => m.id !== aiMsgId));
+        setIsBackendOnline(false);
+        fallbackToMock(userQuery);
+      }
+    } else {
+      // ── Fallback to mock matching ──
+      fallbackToMock(userQuery);
+    }
+  }, [inputValue, isTyping, isLimitReached, isBackendOnline, userProfile, incrementMessageCount, fallbackToMock, messages]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -212,6 +317,50 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
 
   return (
     <div className="flex flex-col h-full bg-background relative">
+      {/* Top Bar with Status and Actions */}
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+        {/* Reset Chat Button */}
+        {messages.length > 1 && (
+          <button
+            onClick={() => {
+              if (confirm("Are you sure you want to clear the chat history?")) {
+                setMessages([
+                  {
+                    id: "1",
+                    sender: "ai",
+                    text: isBackendOnline
+                      ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+                      : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
+                  },
+                ]);
+              }
+            }}
+            className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border border-bauhaus-red/30 text-bauhaus-red hover:bg-bauhaus-red hover:text-white transition-all cursor-pointer bg-background"
+            title="Reset Terminal Chat"
+          >
+            <Trash2 className="w-3 h-3" />
+            Clear
+          </button>
+        )}
+
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border ${
+          isBackendOnline === null
+            ? "border-[#333] text-slate-500 bg-background"
+            : isBackendOnline
+            ? "border-green-800 text-green-500 bg-green-500/5"
+            : "border-[#333] text-slate-500 bg-surface-2"
+        }`}>
+          {isBackendOnline === null ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : isBackendOnline ? (
+            <Wifi className="w-3 h-3" />
+          ) : (
+            <WifiOff className="w-3 h-3" />
+          )}
+          {isBackendOnline === null ? "Connecting..." : isBackendOnline ? "AI Online" : "Offline Mode"}
+        </div>
+      </div>
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto pt-8 pb-32 scrollbar-hide">
         <div className="max-w-3xl mx-auto px-4 space-y-6">
@@ -224,7 +373,9 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
                 className={`flex gap-4 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.sender === "ai" && (
-                  <div className="w-8 h-8 bg-bauhaus-red text-white flex items-center justify-center shrink-0 mt-1 font-black text-xs">
+                  <div className={`w-8 h-8 flex items-center justify-center shrink-0 mt-1 font-black text-xs ${
+                    isBackendOnline ? "bg-bauhaus-red text-white" : "bg-surface-2 border-2 border-[#333] text-slate-400"
+                  }`}>
                     AI
                   </div>
                 )}
@@ -234,27 +385,39 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
                     className={`px-5 py-3 text-sm leading-relaxed whitespace-pre-line ${
                       msg.sender === "user"
                         ? "bg-surface-2 border-2 border-[#333] text-slate-300"
+                        : isBackendOnline && msg.id !== "1"
+                        ? "bg-transparent text-slate-300 font-sans text-sm leading-relaxed"
                         : "bg-transparent text-slate-400 font-mono text-xs"
                     }`}
                   >
                     {msg.text}
+                    {msg.isStreaming && (
+                      <span className="inline-block ml-1 animate-pulse text-bauhaus-red">█</span>
+                    )}
                   </div>
 
                   {msg.results && msg.results.length > 0 && (
                     <div className="grid grid-cols-1 gap-0 w-full">
-                      {msg.results.map((scholarship) => (
-                        <ScholarshipCard
-                          key={scholarship.id}
-                          scholarship={scholarship}
-                          isSaved={savedIds.includes(scholarship.id)}
-                          onToggleSave={(e) => {
-                            e.stopPropagation();
-                            onToggleSave(scholarship.id);
-                          }}
-                          onOpenDetails={() => onOpenDetails(scholarship)}
-                          matchScore={95}
-                        />
-                      ))}
+                      {msg.results.slice(0, 3).map((scholarship) => {
+                        // Use real similarity score from backend, fallback to 80
+                        const rawScore = (scholarship as any)._similarityScore;
+                        const matchScore = rawScore
+                          ? Math.round(rawScore * 100)
+                          : 80;
+                        return (
+                          <ScholarshipCard
+                            key={scholarship.id}
+                            scholarship={scholarship}
+                            isSaved={savedIds.includes(scholarship.id)}
+                            onToggleSave={(e) => {
+                              e.stopPropagation();
+                              onToggleSave(scholarship.id);
+                            }}
+                            onOpenDetails={() => onOpenDetails(scholarship)}
+                            matchScore={matchScore}
+                          />
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -270,12 +433,16 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
 
           {isTyping && (
             <div className="flex gap-4">
-              <div className="w-8 h-8 bg-bauhaus-red text-white flex items-center justify-center shrink-0 font-black text-xs">
+              <div className={`w-8 h-8 flex items-center justify-center shrink-0 font-black text-xs ${
+                isBackendOnline ? "bg-bauhaus-red text-white" : "bg-surface-2 border-2 border-[#333] text-slate-400"
+              }`}>
                 AI
               </div>
               <div className="flex items-center gap-1.5 px-2 font-mono text-xs text-bauhaus-red">
                 <span className="animate-pulse">█</span>
-                <span className="text-slate-500">processing...</span>
+                <span className="text-slate-500">
+                  {isBackendOnline ? "thinking with gemma..." : "processing..."}
+                </span>
               </div>
             </div>
           )}
@@ -292,7 +459,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="// TYPE YOUR QUERY..."
+              placeholder={isBackendOnline ? "// ASK ME ABOUT SCHOLARSHIPS..." : "// TYPE YOUR QUERY..."}
               className="w-full max-h-40 min-h-[56px] py-4 pl-5 pr-16 bg-transparent text-foreground text-sm font-mono focus:outline-none resize-none scrollbar-hide placeholder:text-slate-600 placeholder:uppercase"
               rows={1}
             />
@@ -309,7 +476,9 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
             </button>
           </div>
           <p className="text-center text-[10px] text-slate-600 mt-3 font-black uppercase tracking-widest">
-            AvorIQ can make mistakes. Verify important information.
+            {isBackendOnline
+              ? "Powered by Gemma 3 + pgvector. AvorIQ can make mistakes."
+              : "AvorIQ can make mistakes. Verify important information."}
           </p>
         </div>
       </div>

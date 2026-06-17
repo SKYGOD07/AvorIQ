@@ -1,7 +1,7 @@
 "use client";
 
 import { Scholarship } from "../types/scholarship";
-import { Calendar, Award, Banknote, Bookmark, BookmarkCheck, ArrowUpRight, Sparkles } from "lucide-react";
+import { Calendar, Banknote, Bookmark, BookmarkCheck, ArrowUpRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import CountUp from "./reactbits/CountUp";
 

@@ -1,0 +1,66 @@
+services:
+  # ── PostgreSQL with pgvector extension ──
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: avoriq-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: avoriq
+      POSTGRES_USER: avoriq
+      POSTGRES_PASSWORD: avoriq_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U avoriq -d avoriq"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - avoriq-net
+
+  # ── Ollama LLM Server (CPU-only) ──
+  ollama:
+    image: ollama/ollama:latest
+    container_name: avoriq-ollama
+    restart: unless-stopped
+    ports:
+      - "11435:11434"
+    volumes:
+      - ./data/ollama:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+    networks:
+      - avoriq-net
+
+  # ── FastAPI Backend ──
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: avoriq-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    networks:
+      - avoriq-net
+
+networks:
+  avoriq-net:
+    driver: bridge

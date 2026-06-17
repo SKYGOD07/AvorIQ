@@ -1,4 +1,4 @@
-import { BookOpen, Compass, GraduationCap, MessageSquare, ShieldCheck, Users, Zap } from "lucide-react";
+import { Compass, MessageSquare, ShieldCheck, Users, Zap } from "lucide-react";
 
 export const siteContent = {
   navLinks: [

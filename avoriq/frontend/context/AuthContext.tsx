@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
-  User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
@@ -46,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             let parsed: any = null;
             try {
               parsed = JSON.parse(storedToken);
-            } catch (e) {
+            } catch {
               parsed = storedToken;
             }
 
@@ -78,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.error("Error parsing user profile from localStorage:", e);
               }
             }
-          } catch (e) {
+          } catch {
             const uid = "mock-uid-stored";
             setUser({
               email: "STUDENT@EXAMPLE.COM",

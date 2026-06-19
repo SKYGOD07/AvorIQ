@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       const mockUser = {
         email: email.toUpperCase(),
-        uid: `mock-uid-${Date.now()}`,
+        uid: `mock-uid-${email.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
         displayName: email.split("@")[0].toUpperCase(),
       };
       setUser(mockUser);
@@ -173,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       const mockUser = {
         email: email.toUpperCase(),
-        uid: `mock-uid-${Date.now()}`,
+        uid: `mock-uid-${email.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
         displayName: email.split("@")[0].toUpperCase(),
       };
       setUser(mockUser);
@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await new Promise((resolve) => setTimeout(resolve, 800));
       const mockUser = {
         email: "STUDENT.GOOGLE@AVORIQ.COM",
-        uid: `mock-google-${Date.now()}`,
+        uid: `mock-google-studentgoogleavoriqcom`,
         displayName: "GOOGLE STUDENT",
       };
       setUser(mockUser);

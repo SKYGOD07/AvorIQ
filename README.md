@@ -78,7 +78,7 @@ AvorIQ-Lab/
 ### Backend & AI *(Roadmap)*
 - **Server**: FastAPI (Python)
 - **Database**: PostgreSQL + pgvector (vector similarity search)
-- **LLM Engine**: Ollama (Gemma 2B / Llama 3 locally hosted)
+- **LLM Engine**: Ollama (Gemma 3 4B locally hosted via CPU)
 - **Automation**: n8n workflow engine
 
 ---

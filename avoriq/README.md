@@ -85,7 +85,7 @@ graph TD
 ### Backend & AI Stack (Roadmap)
 - **Server**: FastAPI, Python
 - **Database**: PostgreSQL (Vector store using `pgvector`)
-- **LLM Engine**: Ollama (Running Gemma 2B & Llama 3 models locally)
+- **LLM Engine**: Ollama (Running Gemma 3 4B locally via CPU)
 - **Pipelines**: n8n workflow engine
 
 ---

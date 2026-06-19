@@ -36,8 +36,8 @@ class ScholarshipDB(Base):
     benefits = Column(Text, nullable=False)
     faqs = Column(JSON, nullable=False, default=[])
 
-    # pgvector embedding (768-dim for nomic-embed-text)
-    embedding = Column(Vector(768), nullable=True)
+    # pgvector embedding (1024-dim for BAAI/bge-m3 served by TEI)
+    embedding = Column(Vector(1024), nullable=True)
 
     def to_dict(self):
         """Convert to API-compatible dict matching the TypeScript Scholarship interface."""

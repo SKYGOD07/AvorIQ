@@ -91,4 +91,9 @@ class HealthResponse(BaseModel):
     status: str
     database: str
     ollama: str
+    tei: str = "unknown"
+    hf_api: str = "unknown"
+    embedding_primary: str = "tei"
+    embedding_model: str = ""
+    embedding_dim: int = 0
     models_loaded: list[str] = []

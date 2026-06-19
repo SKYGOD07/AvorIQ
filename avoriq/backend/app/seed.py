@@ -6,11 +6,11 @@ Idempotent — skips if data already exists.
 
 import asyncio
 import logging
-from sqlalchemy import select, func
-from app.database import async_session, init_db
+from sqlalchemy import select, func, text
+from app.database import async_session, init_db, engine, Base
 from app.models import ScholarshipDB
 from app.services.vector_service import embed_and_store_scholarship
-from app.services.ollama_service import ensure_models_ready
+from app.services.tei_service import ensure_tei_ready, EMBEDDING_DIM
 
 logger = logging.getLogger(__name__)
 
@@ -528,9 +528,55 @@ SCHOLARSHIPS = [
 ]
 
 
+async def _check_schema_dim() -> int | None:
+    """
+    Return the dimension of the existing `scholarships.embedding` column,
+    or None if the table doesn't exist yet.
+    """
+    try:
+        async with engine.connect() as conn:
+            row = await conn.execute(text("""
+                SELECT atttypmod
+                FROM pg_attribute
+                WHERE attrelid = 'scholarships'::regclass
+                  AND attname = 'embedding'
+            """))
+            r = row.first()
+            if r and r[0]:
+                # pgvector stores dimension in atttypmod (with -1 offset)
+                return int(r[0]) + 1
+        return None
+    except Exception:
+        return None
+
+
+async def _drop_scholarships_table() -> None:
+    """Drop the scholarships table so the new dim takes effect on next create_all."""
+    async with engine.begin() as conn:
+        await conn.execute(text("DROP TABLE IF EXISTS scholarships"))
+        logger.info("  Dropped scholarships table for schema migration.")
+
+
 async def seed_scholarships(force_reseed: bool = False):
     """Seed all scholarships into the database with embeddings. Idempotent."""
     logger.info("Checking if scholarship data needs seeding...")
+
+    # Step 0: ensure TEI is ready before we try to embed anything.
+    if not await ensure_tei_ready():
+        logger.error("TEI not ready — skipping seed. Check the tei container logs.")
+        return
+
+    # Step 0b: handle schema-dimension mismatch (e.g. 768 -> 1024 migration).
+    existing_dim = await _check_schema_dim()
+    if existing_dim is not None and existing_dim != EMBEDDING_DIM:
+        logger.warning(
+            f"Embedding dim mismatch: table has {existing_dim}, model wants {EMBEDDING_DIM}. "
+            f"Dropping scholarships table for clean re-create."
+        )
+        await _drop_scholarships_table()
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        existing_dim = EMBEDDING_DIM
 
     async with async_session() as session:
         # Check if data already exists
@@ -548,7 +594,7 @@ async def seed_scholarships(force_reseed: bool = False):
             await session.commit()
             logger.info("Existing data cleared.")
 
-        logger.info(f"Seeding {len(SCHOLARSHIPS)} scholarships with embeddings...")
+        logger.info(f"Seeding {len(SCHOLARSHIPS)} scholarships with embeddings (dim={EMBEDDING_DIM})...")
 
         success_count = 0
         for i, scholarship in enumerate(SCHOLARSHIPS):

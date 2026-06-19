@@ -213,7 +213,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
     // Find the most recent AI message that has results (scholarships) shown
     let activeScholarships: Scholarship[] | null = null;
     for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].sender === "ai" && messages[i].results && messages[i].results.length > 0) {
+      if (messages[i].sender === "ai" && messages[i].results && messages[i].results!.length > 0) {
         activeScholarships = messages[i].results || null;
         break;
       }

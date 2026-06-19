@@ -543,8 +543,8 @@ async def _check_schema_dim() -> int | None:
             """))
             r = row.first()
             if r and r[0]:
-                # pgvector stores dimension in atttypmod (with -1 offset)
-                return int(r[0]) + 1
+                # pgvector stores dimension in atttypmod directly
+                return int(r[0])
         return None
     except Exception:
         return None

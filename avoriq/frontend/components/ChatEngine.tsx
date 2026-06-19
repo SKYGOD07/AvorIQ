@@ -8,9 +8,8 @@ import { Scholarship } from "../types/scholarship";
 import { mockScholarships, indianStates } from "../data/scholarships";
 import ScholarshipCard from "./ScholarshipCard";
 import { useChatLimit } from "../hooks/useChatLimit";
-import { sendChatMessage, checkBackendHealth } from "../lib/api";
+import { sendChatMessage, checkBackendHealth, fetchChatHistory, syncChatHistory, clearChatHistory } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 
 export interface ChatMessage {
   id: string;
@@ -28,9 +27,9 @@ interface ChatEngineProps {
 
 export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: ChatEngineProps) {
   const { isLimitReached, incrementMessageCount } = useChatLimit();
-  const { userProfile } = useAuth();
+  const { userProfile, user } = useAuth();
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
-  const [messages, setMessages] = useLocalStorage<ChatMessage[]>("avoriq_chat_history", [
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
       sender: "ai",
@@ -42,37 +41,46 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Clean up any hanging streaming indicators on load
+  // Load chat history from PostgreSQL on mount / user change
   useEffect(() => {
-    setMessages((prev) => {
-      const hasStreaming = prev.some((m) => m.isStreaming);
-      if (hasStreaming) {
-        return prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m));
-      }
-      return prev;
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setMessages]);
-
-  // Check backend health on mount
-  useEffect(() => {
-    checkBackendHealth().then((online) => {
+    checkBackendHealth().then(async (online) => {
       setIsBackendOnline(online);
-      if (online) {
-        setMessages((prev) => {
-          if (prev.length <= 1) {
-            return [{
-              id: "1",
-              sender: "ai",
-              text: "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships.",
-            }];
+      
+      const initialText = online
+        ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+        : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.";
+        
+      if (user) {
+        try {
+          const history = await fetchChatHistory(user.uid);
+          if (history && history.length > 0) {
+            // Clean up any hanging streaming indicators
+            const cleaned = history.map((m) => 
+              m.isStreaming ? { ...m, isStreaming: false } : m
+            );
+            setMessages(cleaned);
+          } else {
+            setMessages([{ id: "1", sender: "ai", text: initialText }]);
           }
-          return prev;
-        });
+        } catch (e) {
+          console.error("Failed to load chat history from DB:", e);
+          setMessages([{ id: "1", sender: "ai", text: initialText }]);
+        }
+      } else {
+        setMessages([{ id: "1", sender: "ai", text: initialText }]);
       }
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setMessages]);
+  }, [user]);
+
+  // Sync chat history to database when messages update
+  useEffect(() => {
+    if (user && messages.length > 0) {
+      const isCurrentlyStreaming = messages.some((m) => m.isStreaming);
+      if (!isCurrentlyStreaming) {
+        syncChatHistory(user.uid, messages);
+      }
+    }
+  }, [messages, user]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -324,17 +332,19 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
         {/* Reset Chat Button */}
         {messages.length > 1 && (
           <button
-            onClick={() => {
+            onClick={async () => {
               if (confirm("Are you sure you want to clear the chat history?")) {
-                setMessages([
-                  {
-                    id: "1",
-                    sender: "ai",
-                    text: isBackendOnline
-                      ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
-                      : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
-                  },
-                ]);
+                const initialMsg: ChatMessage = {
+                  id: "1",
+                  sender: "ai",
+                  text: isBackendOnline
+                    ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+                    : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
+                };
+                setMessages([initialMsg]);
+                if (user) {
+                  await clearChatHistory(user.uid);
+                }
               }
             }}
             className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border border-bauhaus-red/30 text-bauhaus-red hover:bg-bauhaus-red hover:text-white transition-all cursor-pointer bg-background"

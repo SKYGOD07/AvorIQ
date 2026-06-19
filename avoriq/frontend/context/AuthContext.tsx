@@ -12,6 +12,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth, isFirebaseConfigured } from "../lib/firebase";
+import { fetchUserProfile, saveUserProfile } from "../lib/api";
 
 interface AuthContextType {
   user: any | null;
@@ -36,12 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
-      // Load mock user from local storage if available on client load
       if (typeof window !== "undefined") {
         const storedToken = window.localStorage.getItem("avoriq_auth_token");
         if (storedToken) {
           try {
-            // Check if storedToken is valid JSON or just a string token
             let parsed: any = null;
             try {
               parsed = JSON.parse(storedToken);
@@ -65,27 +64,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setUser({ email, uid, displayName });
             }
 
-            // Sync questionnaire details synchronously before loading becomes false
-            const completed = window.localStorage.getItem(`avoriq_questionnaire_completed_${uid}`);
-            setIsQuestionnaireCompleted(completed === "true");
-
-            const profile = window.localStorage.getItem(`avoriq_user_profile_${uid}`);
-            if (profile) {
-              try {
-                setUserProfile(JSON.parse(profile));
-              } catch (e) {
-                console.error("Error parsing user profile from localStorage:", e);
+            fetchUserProfile(uid).then((profile) => {
+              if (profile) {
+                setUserProfile(profile);
+                setIsQuestionnaireCompleted(true);
+              } else {
+                setUserProfile(null);
+                setIsQuestionnaireCompleted(false);
               }
-            }
-          } catch {
-            const uid = "mock-uid-stored";
-            setUser({
-              email: "STUDENT@EXAMPLE.COM",
-              uid,
-              displayName: "MOCK STUDENT",
+              setLoading(false);
             });
-            const completed = window.localStorage.getItem(`avoriq_questionnaire_completed_${uid}`);
-            setIsQuestionnaireCompleted(completed === "true");
+            return;
+          } catch (e) {
+            console.error("Error setting mock user:", e);
           }
         }
       }
@@ -107,7 +98,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Sync with existing local storage auth token for backward compatibility
         try {
           const token = await currentUser.getIdToken();
           window.localStorage.setItem("avoriq_auth_token", JSON.stringify(token));
@@ -116,22 +106,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           window.localStorage.setItem("avoriq_auth_token", JSON.stringify(currentUser.uid));
         }
 
-        // Load profile and questionnaire completed status synchronously before setting loading = false
-        if (typeof window !== "undefined") {
-          const completed = window.localStorage.getItem(`avoriq_questionnaire_completed_${currentUser.uid}`);
-          setIsQuestionnaireCompleted(completed === "true");
-
-          const profile = window.localStorage.getItem(`avoriq_user_profile_${currentUser.uid}`);
+        try {
+          const profile = await fetchUserProfile(currentUser.uid);
           if (profile) {
-            try {
-              setUserProfile(JSON.parse(profile));
-            } catch (e) {
-              console.error("Error parsing user profile from localStorage:", e);
-              setUserProfile(null);
-            }
+            setUserProfile(profile);
+            setIsQuestionnaireCompleted(true);
           } else {
             setUserProfile(null);
+            setIsQuestionnaireCompleted(false);
           }
+        } catch (e) {
+          console.error("Error fetching user profile:", e);
+          setUserProfile(null);
+          setIsQuestionnaireCompleted(false);
         }
       } else {
         window.localStorage.removeItem("avoriq_auth_token");
@@ -161,12 +148,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(mockUser);
       window.localStorage.setItem("avoriq_auth_token", JSON.stringify(mockUser.uid));
       
-      // Load mock questionnaire details for the new session synchronously
-      if (typeof window !== "undefined") {
-        const completed = window.localStorage.getItem(`avoriq_questionnaire_completed_${mockUser.uid}`);
-        setIsQuestionnaireCompleted(completed === "true");
-        const profile = window.localStorage.getItem(`avoriq_user_profile_${mockUser.uid}`);
-        if (profile) setUserProfile(JSON.parse(profile));
+      // Load mock questionnaire details from database
+      const profile = await fetchUserProfile(mockUser.uid);
+      if (profile) {
+        setUserProfile(profile);
+        setIsQuestionnaireCompleted(true);
+      } else {
+        setUserProfile(null);
+        setIsQuestionnaireCompleted(false);
       }
       
       return { user: mockUser };
@@ -207,11 +196,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(mockUser);
       window.localStorage.setItem("avoriq_auth_token", JSON.stringify(mockUser.uid));
       
-      if (typeof window !== "undefined") {
-        const completed = window.localStorage.getItem(`avoriq_questionnaire_completed_${mockUser.uid}`);
-        setIsQuestionnaireCompleted(completed === "true");
-        const profile = window.localStorage.getItem(`avoriq_user_profile_${mockUser.uid}`);
-        if (profile) setUserProfile(JSON.parse(profile));
+      const profile = await fetchUserProfile(mockUser.uid);
+      if (profile) {
+        setUserProfile(profile);
+        setIsQuestionnaireCompleted(true);
+      } else {
+        setUserProfile(null);
+        setIsQuestionnaireCompleted(false);
       }
       
       return;
@@ -244,12 +235,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const completeQuestionnaire = async (profileData: any) => {
     if (!user) return;
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(`avoriq_user_profile_${user.uid}`, JSON.stringify(profileData));
-      window.localStorage.setItem(`avoriq_questionnaire_completed_${user.uid}`, "true");
+    const success = await saveUserProfile(user.uid, user.email || "student@example.com", profileData);
+    if (success) {
+      setUserProfile(profileData);
+      setIsQuestionnaireCompleted(true);
+    } else {
+      console.error("Failed to save profile to PostgreSQL database");
+      // Fallback state update to not block UI
+      setUserProfile(profileData);
+      setIsQuestionnaireCompleted(true);
     }
-    setUserProfile(profileData);
-    setIsQuestionnaireCompleted(true);
   };
 
   return (

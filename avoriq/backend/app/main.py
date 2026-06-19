@@ -82,9 +82,11 @@ app.add_middleware(
 # ── Mount Routers ──
 from app.routers.scholarships import router as scholarships_router
 from app.routers.chat import router as chat_router
+from app.routers.admin import router as admin_router
 
 app.include_router(scholarships_router)
 app.include_router(chat_router)
+app.include_router(admin_router)
 
 
 # ── Health Check ──

@@ -200,6 +200,10 @@ async def check_health() -> dict:
     if EMBEDDING_PRIMARY == "hf_api":
         primary = await hf_check_health()
         primary["primary"] = "hf_api"
+    elif EMBEDDING_PRIMARY == "ollama":
+        from app.services.ollama_service import check_health as ollama_health
+        primary = await ollama_health()
+        primary["primary"] = "ollama"
     else:
         primary = await tei_check_health()
         primary["primary"] = "tei"
@@ -215,6 +219,10 @@ async def generate_embedding(text: str) -> list[float]:
 
     Returns [] if both backends fail.
     """
+    if EMBEDDING_PRIMARY == "ollama":
+        from app.services.ollama_service import generate_embedding as ollama_embed
+        return await ollama_embed(text)
+
     if EMBEDDING_PRIMARY == "hf_api":
         order = ("hf_api", "tei")
     else:
@@ -244,6 +252,10 @@ async def generate_embeddings_batch(texts: list[str]) -> list[list[float]]:
     """Batch-embed with fallback. Returns []-filled list if all backends fail."""
     if not texts:
         return []
+    if EMBEDDING_PRIMARY == "ollama":
+        from app.services.ollama_service import generate_embedding as ollama_embed
+        return await asyncio.gather(*[ollama_embed(t) for t in texts])
+
     if EMBEDDING_PRIMARY == "hf_api":
         order = ("hf_api", "tei")
     else:
@@ -269,6 +281,14 @@ async def ensure_tei_ready(max_wait_seconds: int = 120) -> bool:
     Warm up the active primary backend so the first real embedding doesn't
     pay the model-load latency cost.
     """
+    if EMBEDDING_PRIMARY == "ollama":
+        logger.info("Embedding primary = Ollama. Ensuring model is pulled...")
+        from app.services.ollama_service import pull_model
+        model_name = EMBEDDING_MODEL
+        if model_name.startswith("BAAI/"):
+            model_name = model_name.replace("BAAI/", "")
+        return await pull_model(model_name)
+
     if EMBEDDING_PRIMARY == "hf_api":
         logger.info("Embedding primary = HF Inference API. Checking...")
         h = await hf_check_health()

@@ -36,6 +36,9 @@ services:
     image: ollama/ollama:latest
     container_name: avoriq-ollama
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       - "127.0.0.1:11435:11434"   # bound to localhost only
     volumes:
@@ -73,6 +76,9 @@ services:
       dockerfile: Dockerfile
     container_name: avoriq-backend
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       - "127.0.0.1:8000:8000"   # bound to localhost only; Caddy proxies
     env_file:

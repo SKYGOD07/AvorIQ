@@ -66,3 +66,48 @@ class ScholarshipDB(Base):
             "benefits": self.benefits,
             "faqs": self.faqs or [],
         }
+
+
+class UserProfileDB(Base):
+    __tablename__ = "user_profiles"
+
+    uid = Column(String, primary_key=True, index=True)
+    email = Column(String, nullable=False)
+    education_level = Column(String, nullable=True)
+    gender = Column(String, nullable=True)
+    family_income_max = Column(Integer, nullable=True, default=0)
+    state = Column(String, nullable=True)
+    caste = Column(String, nullable=True)
+    college_name = Column(String, nullable=True)
+    enrollment_number = Column(String, nullable=True)
+
+    def to_dict(self):
+        return {
+            "educationLevel": self.education_level,
+            "gender": self.gender,
+            "familyIncomeMax": self.family_income_max,
+            "state": self.state,
+            "caste": self.caste,
+            "collegeName": self.college_name,
+            "enrollmentNumber": self.enrollment_number,
+        }
+
+
+class ChatMessageDB(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(String, primary_key=True, index=True)
+    uid = Column(String, index=True, nullable=False)
+    sender = Column(String, nullable=False)  # "user" | "ai"
+    text = Column(Text, nullable=False)
+    created_at = Column(Float, nullable=False)  # timestamp for ordering
+    results = Column(JSON, nullable=True)  # matching scholarships in that turn
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "sender": self.sender,
+            "text": self.text,
+            "results": self.results or [],
+        }
+

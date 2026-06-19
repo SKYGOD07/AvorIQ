@@ -3,7 +3,6 @@ import { Compass, MessageSquare, ShieldCheck, Users, Zap } from "lucide-react";
 export const siteContent = {
   navLinks: [
     { name: "Home", href: "/" },
-    { name: "Chat", href: "/chat" },
     { name: "Scholarships", href: "/scholarships" },
     { name: "About", href: "/about" },
     { name: "Coming Soon", href: "/coming-soon" },

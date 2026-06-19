@@ -43,5 +43,5 @@ async def init_db():
         # Enable pgvector extension
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         # Import models so they register with Base.metadata
-        from app.models import ScholarshipDB  # noqa: F401
+        from app.models import ScholarshipDB, UserProfileDB, ChatMessageDB  # noqa: F401
         await conn.run_sync(Base.metadata.create_all)

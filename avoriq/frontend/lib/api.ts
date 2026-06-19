@@ -209,3 +209,88 @@ export async function sendChatMessageBatch(
     return null;
   }
 }
+
+// ── User Profiles ──
+
+export async function fetchUserProfile(uid: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/users/${uid}/profile`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function saveUserProfile(
+  uid: string,
+  email: string,
+  profileData: any
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/users/${uid}/profile`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        educationLevel: profileData.educationLevel,
+        gender: profileData.gender,
+        familyIncomeMax: profileData.familyIncomeMax,
+        state: profileData.state,
+        caste: profileData.caste,
+        collegeName: profileData.collegeName,
+        enrollmentNumber: profileData.enrollmentNumber,
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// ── User Chat Histories ──
+
+export async function fetchChatHistory(uid: string): Promise<any[] | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/users/${uid}/chat`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function syncChatHistory(uid: string, messages: any[]): Promise<boolean> {
+  try {
+    // Sanitize messages so we only sync completed (non-streaming) items
+    const sanitized = messages
+      .filter((m) => !m.isStreaming)
+      .map((m) => ({
+        id: String(m.id),
+        sender: m.sender,
+        text: m.text,
+        results: m.results || [],
+      }));
+
+    const res = await fetch(`${API_BASE}/api/users/${uid}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: sanitized }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearChatHistory(uid: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/users/${uid}/chat`, {
+      method: "DELETE",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+

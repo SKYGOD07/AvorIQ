@@ -51,7 +51,8 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       }
       return prev;
     });
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setMessages]);
 
   // Check backend health on mount
   useEffect(() => {
@@ -70,7 +71,8 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
         });
       }
     });
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setMessages]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -185,7 +187,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
         const shownIds = new Set<string>();
         prev.forEach((m) => {
           if (m.results) {
-            m.results.forEach((s) => shownIds.add(s.id));
+            m.results!.forEach((s) => shownIds.add(s.id));
           }
         });
         const filteredResults = results.filter((s) => !shownIds.has(s.id));
@@ -213,7 +215,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
     // Find the most recent AI message that has results (scholarships) shown
     let activeScholarships: Scholarship[] | null = null;
     for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].sender === "ai" && messages[i].results && messages[i].results.length > 0) {
+      if (messages[i].sender === "ai" && messages[i].results && messages[i].results!.length > 0) {
         activeScholarships = messages[i].results || null;
         break;
       }
@@ -255,7 +257,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
                 const shownIds = new Set<string>();
                 prev.forEach((m) => {
                   if (m.id !== aiMsgId && m.results) {
-                    m.results.forEach((s) => shownIds.add(s.id));
+                    m.results!.forEach((s) => shownIds.add(s.id));
                   }
                 });
 
@@ -396,9 +398,9 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
                     )}
                   </div>
 
-                  {msg.results && msg.results.length > 0 && (
+                  {msg.results && msg.results!.length > 0 && (
                     <div className="grid grid-cols-1 gap-0 w-full">
-                      {msg.results.slice(0, 3).map((scholarship) => {
+                      {msg.results!.slice(0, 3).map((scholarship) => {
                         // Use real similarity score from backend, fallback to 80
                         const rawScore = (scholarship as any)._similarityScore;
                         const matchScore = rawScore

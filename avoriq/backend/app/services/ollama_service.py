@@ -11,7 +11,7 @@ from typing import AsyncGenerator, overload, Union, Literal
 logger = logging.getLogger(__name__)
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-CHAT_MODEL = os.getenv("CHAT_MODEL", "gemma3:1b")
+CHAT_MODEL = os.getenv("CHAT_MODEL", "gemma3:4b")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
 
 # Shared async client with generous timeout for CPU inference
@@ -107,7 +107,7 @@ async def chat_completion(
     messages: list[dict], stream: bool = False
 ) -> Union[str, AsyncGenerator[str, None]]:
     """
-    Generate a chat completion using Gemma 3 1B.
+    Generate a chat completion using Gemma 3 4B.
     
     Args:
         messages: List of {"role": "user"|"system"|"assistant", "content": "..."}

@@ -1,7 +1,7 @@
 """
 AvorIQ Backend — Chat Router
 AI-powered scholarship chat with RAG (Retrieval-Augmented Generation).
-Uses pgvector semantic search + Gemma 3 1B via Ollama.
+Uses pgvector semantic search + Gemma 3 4B via Ollama.
 """
 
 import json
@@ -252,7 +252,7 @@ async def chat(
     1. Classify query intent (search vs detail vs greeting)
     2. Semantic search for relevant scholarships
     3. Filter context & cards based on mentioned brand names
-    4. Generate response with Gemma 3 1B
+    4. Generate response with Gemma 3 4B
     """
     # Step 0: Classify the query intent
     intent = _classify_query_intent(request.message)

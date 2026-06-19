@@ -114,7 +114,7 @@ async def load_csv_to_database(csv_path: str):
     from app.database import async_session, init_db
     from app.models import ScholarshipDB
     from app.services.vector_service import embed_and_store_scholarship
-    from app.services.ollama_service import ensure_models_ready
+    from app.services.tei_service import ensure_tei_ready
     from sqlalchemy import select
 
     # Step 1: Read CSV
@@ -129,9 +129,11 @@ async def load_csv_to_database(csv_path: str):
     logger.info("Initializing database...")
     await init_db()
 
-    # Step 3: Ensure models are ready
-    logger.info("Checking Ollama models...")
-    await ensure_models_ready()
+    # Step 3: Ensure TEI is ready
+    logger.info("Checking TEI embedding service...")
+    if not await ensure_tei_ready():
+        logger.error("TEI not ready — aborting CSV load.")
+        return
 
     # Step 4: Embed and store each scholarship
     async with async_session() as session:

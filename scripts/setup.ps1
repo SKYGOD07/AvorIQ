@@ -53,14 +53,14 @@ if ($retryCount -ge $maxRetries) {
 
 # Pull models
 Write-Host ""
-Write-Host "[4/6] Pulling Gemma 3 1B model (~815 MB)..." -ForegroundColor Yellow
+Write-Host "[4/6] Pulling Gemma 3 4B model (~3 GB)..." -ForegroundColor Yellow
 Write-Host "  This may take a few minutes on first run..." -ForegroundColor Gray
-docker exec avoriq-ollama ollama pull gemma3:1b
+docker exec avoriq-ollama ollama pull gemma3:4b
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "  WARNING: Failed to pull gemma3:1b. Backend will retry on startup." -ForegroundColor Yellow
+    Write-Host "  WARNING: Failed to pull gemma3:4b. Backend will retry on startup." -ForegroundColor Yellow
 }
 else {
-    Write-Host "  gemma3:1b pulled successfully!" -ForegroundColor Green
+    Write-Host "  gemma3:4b pulled successfully!" -ForegroundColor Green
 }
 
 Write-Host ""

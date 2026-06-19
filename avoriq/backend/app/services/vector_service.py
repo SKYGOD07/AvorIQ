@@ -15,7 +15,7 @@ import re
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import ScholarshipDB
-from app.services.ollama_service import generate_embedding
+from app.services.tei_service import generate_embedding
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,8 @@ MIN_SIMILARITY_THRESHOLD = 0.3
 def build_scholarship_text(scholarship: dict) -> str:
     """
     Build a rich text representation of a scholarship for embedding.
-    
-    This text is what gets converted to a 768-dim vector.
+
+    This text is what gets converted to a 1024-dim vector by bge-m3.
     The richer and more structured it is, the better the search accuracy.
     """
     elig = scholarship.get("eligibility", {})

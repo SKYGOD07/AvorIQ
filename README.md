@@ -235,6 +235,33 @@ The AI **does not** auto-submit applications, auto-verify legal document authent
 
 ---
 
+### 🛠️ AI Tools Used
+
+* **Local LLM Engine (Free & Open Source):**
+  * **Ollama** (Free, locally hosted).
+  * **Gemma 3 4B (Chat)** (Free, open-weights model by Google DeepMind) used locally for query intent routing, natural language parsing, and context generation.
+  * **Nomic Embed Text** (Free, open-weights embedding model) used locally via Ollama for semantic text embedding mapping for vector similarity search.
+* **AI Coding Assistance & Development (Free/Premium):**
+  * **Antigravity (by Google DeepMind)** (Free/internal workspace trial tool) used for codebase dependency analysis, monorepo restructuring, and documentation compiling.
+  * **VS Code with GitHub Copilot** (Paid/Subscription) used during development for code autocomplete, boilerplate generation, and React component structuring.
+* **APIs & Backend (Free/Developer Tier):**
+  * **Buddy4Study API** (Free scraper target for local catalog building).
+  * **Data.gov.in API** (Free developer tier open-data metadata registry access).
+
+---
+
+### 📊 Data Sources
+
+* **Raw Data Sources (Real & Collected):**
+  * **Data.gov.in API / Open Data Portal:** We utilized the official Indian Open Government Data Platform to query public scholarship registry metadata (from the 2016-17, 2018, and 2024-25 datasets) to extract verified government-sponsored opportunities.
+  * **Buddy4Study Portal (Scraped/API):** We pulled current corporate CSR and private foundation scholarship records using our custom scraping pipeline ([scrape_scholarships.py](file:///e:/AvorIQ-Lab/avoriq/scripts/scrape_scholarships.py)) to gather live, real-world educational aid entries.
+* **Mock/Structured Datasets (Local):**
+  * **Curated Dataset (`scholarships.ts` & `scholarships.json`):** We structured a clean, local database of 134 highly detailed scholarships spanning High School, Undergraduate (UG), and Postgraduate (PG) levels, including exact eligibility checks, checklist requirements, and application URLs.
+* **Synthetic Data (Instruction Tuning Dataset):**
+  * **Gemma SFT Instruction Dataset:** We generated a synthetic instruction-tuning dataset (`gemma_instruction_dataset.jsonl` under `datasets/scholarships/`) using our scraper pipeline. It compiles structured user query/AI response pairs (e.g., *"Find scholarships for a female student in engineering"* matched to appropriate scholarship JSON objects) to allow future supervised fine-tuning of the Gemma model on the specific scholarship dataset format.
+
+---
+
 ## 👥 Team
 
 Built with ❤️ for students globally.

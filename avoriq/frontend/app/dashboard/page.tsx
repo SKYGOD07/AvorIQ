@@ -98,7 +98,8 @@ function getStudyStreak(): number {
    CALIBRATION QUESTIONS DEFINITIONS
    ═══════════════════════════════════════════ */
 
-function getFieldOfStudy(profile: any): string {
+function getFieldOfStudy(profile: any, answers?: Record<string, string>): string {
+  if (answers && answers["1"]) return answers["1"];
   if (!profile) return "General Academics";
   const interest = profile.careerInterest || "";
   const exam = profile.targetExam || "";
@@ -122,6 +123,51 @@ function getFieldOfStudy(profile: any): string {
     return "Arts & Public Service";
   }
   return "General Academics";
+}
+
+const calibrationSetupQuestions = [
+  {
+    q: "What is your target exam or study goal?",
+    placeholder: "Select your main target goal",
+    options: [
+      "JEE Main / Advanced",
+      "NEET / Medical",
+      "GATE / Tech Exam",
+      "UPSC / Civil Services",
+      "CAT / MBA Prep",
+      "General Academics"
+    ]
+  },
+  {
+    q: "What is your preferred career direction?",
+    placeholder: "Select your career path",
+    options: [
+      "Engineering & IT",
+      "Medicine & Biotech",
+      "Civil Services",
+      "Business & Management",
+      "Science & Research",
+      "Arts & Public Service"
+    ]
+  },
+  {
+    q: "AI Auto-Fill & Application Tracker",
+    placeholder: "Choose tracking option",
+    options: [
+      "Enable Secure AI Form Autofill & Tracker (Recommended)",
+      "Manual Application (Deadline Tracking Only)"
+    ]
+  }
+];
+
+function getQuestionForIndex(index: number, answers: Record<string, string>): { q: string; placeholder: string; options?: string[] } {
+  if (index === 0) return calibrationSetupQuestions[0];
+  if (index === 1) return calibrationSetupQuestions[1];
+  if (index === 2) return calibrationSetupQuestions[2];
+  
+  const chosenCareer = answers["1"] || "General Academics";
+  const fieldQs = fieldQuestions[chosenCareer] || fieldQuestions["General Academics"];
+  return fieldQs[index - 3];
 }
 
 const fieldQuestions: Record<string, { q: string; placeholder: string; options?: string[] }[]> = {
@@ -177,6 +223,10 @@ const fieldQuestions: Record<string, { q: string; placeholder: string; options?:
 };
 
 function generateCsv(profile: any, answers: Record<string, string>, field: string): string {
+  const targetExam = answers["0"] || profile?.targetExam || "";
+  const careerInterest = answers["1"] || profile?.careerInterest || "";
+  const enableAutofill = answers["2"] || (profile?.enableAutofill ? "Enabled" : "Disabled");
+
   const lines = [
     "Field,Value",
     `Name,${profile?.name || "Student"}`,
@@ -185,14 +235,15 @@ function generateCsv(profile: any, answers: Record<string, string>, field: strin
     `Family Income Max,${profile?.familyIncomeMax || ""}`,
     `State,${profile?.state || ""}`,
     `Caste,${profile?.caste || ""}`,
-    `Target Exam,${profile?.targetExam || ""}`,
-    `Career Interest,${profile?.careerInterest || ""}`,
+    `Target Exam,${targetExam}`,
+    `Career Interest,${careerInterest}`,
+    `AI Autofill,${enableAutofill}`,
     `Field of Study,${field}`
   ];
 
-  const questions = fieldQuestions[field] || [];
+  const questions = fieldQuestions[field] || fieldQuestions["General Academics"];
   questions.forEach((qObj, idx) => {
-    const val = answers[idx] || "";
+    const val = answers[String(idx + 3)] || "";
     const sanitizedVal = val.replace(/"/g, '""');
     const sanitizedQ = qObj.q.replace(/"/g, '""');
     lines.push(`"${sanitizedQ}","${sanitizedVal}"`);
@@ -515,6 +566,9 @@ export default function DashboardPage() {
   const greeting = getGreeting();
   const dateStr = getFormattedDate();
 
+  const currentQ = useMemo(() => getQuestionForIndex(currentQIndex, calibrationAnswers), [currentQIndex, calibrationAnswers]);
+  const totalQs = useMemo(() => 3 + (fieldQuestions[calibrationAnswers["1"] || getFieldOfStudy(userProfile)]?.length || 5), [calibrationAnswers, userProfile]);
+
   // Saved scholarships from localStorage filtered by savedIds
   const savedScholarships = useMemo(() => {
     return mockScholarships
@@ -528,8 +582,26 @@ export default function DashboardPage() {
   const isFullyCalibrated = calibration >= 100;
 
   const handleSaveCalibration = (answers: Record<string, string>) => {
-    const field = getFieldOfStudy(userProfile);
-    const csvContent = generateCsv(userProfile, answers, field);
+    const targetExam = answers["0"];
+    const careerInterest = answers["1"];
+    const autofillText = answers["2"];
+    const enableAutofill = autofillText ? autofillText.includes("Autofill") : true;
+
+    // Save targetExam, careerInterest, and enableAutofill to userProfile/localStorage
+    const uid = userProfile?.uid || 'guest';
+    window.localStorage.setItem(`avoriq_targetExam_${uid}`, targetExam);
+    window.localStorage.setItem(`avoriq_careerInterest_${uid}`, careerInterest);
+    window.localStorage.setItem(`avoriq_enableAutofill_${uid}`, String(enableAutofill));
+
+    // Also update profile data locally to propagate changes in UI
+    if (userProfile) {
+      userProfile.targetExam = targetExam;
+      userProfile.careerInterest = careerInterest;
+      userProfile.enableAutofill = enableAutofill;
+    }
+
+    const field = careerInterest;
+    const csvContent = generateCsv(userProfile || { name: userName }, answers, field);
 
     localStorage.setItem("avoriq_calibration_answers", JSON.stringify(answers));
     localStorage.setItem("avoriq_calibration_csv", csvContent);
@@ -549,12 +621,22 @@ export default function DashboardPage() {
 
   const handleResetCalibration = () => {
     if (confirm("Reset calibration data? This will clear your custom study parameters.")) {
+      const uid = userProfile?.uid || 'guest';
+      localStorage.removeItem(`avoriq_targetExam_${uid}`);
+      localStorage.removeItem(`avoriq_careerInterest_${uid}`);
+      localStorage.removeItem(`avoriq_enableAutofill_${uid}`);
       localStorage.removeItem("avoriq_calibration_answers");
       localStorage.removeItem("avoriq_calibration_csv");
       localStorage.removeItem("avoriq_field_calibrated");
       localStorage.removeItem("avoriq_weekly_study");
       localStorage.removeItem("avoriq_study_streak");
       localStorage.removeItem("avoriq_exam_prep_score");
+
+      if (userProfile) {
+        delete userProfile.targetExam;
+        delete userProfile.careerInterest;
+        delete userProfile.enableAutofill;
+      }
 
       setWeeklyData([0, 0, 0, 0, 0, 0, 0]);
       setStreak(0);
@@ -1047,7 +1129,7 @@ export default function DashboardPage() {
                   AI Context Calibration
                 </span>
                 <h3 className="text-foreground font-black text-lg uppercase tracking-wider">
-                  {getFieldOfStudy(userProfile).toUpperCase()} PROFILE
+                  {getFieldOfStudy(userProfile, calibrationAnswers).toUpperCase()} PROFILE
                 </h3>
                 <div className="w-16 h-[2px] bg-bauhaus-yellow mt-2" />
               </div>
@@ -1056,26 +1138,26 @@ export default function DashboardPage() {
               <div className="w-full bg-surface-2 border border-[#333] h-2 mb-6">
                 <div
                   className="bg-bauhaus-yellow h-full transition-all duration-300"
-                  style={{ width: `${((currentQIndex + 1) / (fieldQuestions[getFieldOfStudy(userProfile)]?.length || 1)) * 100}%` }}
+                  style={{ width: `${((currentQIndex + 1) / totalQs) * 100}%` }}
                 />
               </div>
 
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-                Question {currentQIndex + 1} of {fieldQuestions[getFieldOfStudy(userProfile)]?.length || 5}
+                Question {currentQIndex + 1} of {totalQs}
               </div>
 
               {/* Question Text */}
               <div className="mb-6 min-h-[64px]">
                 <h4 className="text-foreground font-black text-sm uppercase tracking-wide leading-relaxed">
-                  {fieldQuestions[getFieldOfStudy(userProfile)]?.[currentQIndex]?.q}
+                  {currentQ.q}
                 </h4>
               </div>
 
               {/* Answer Inputs / Buttons */}
               <div className="mb-8">
-                {fieldQuestions[getFieldOfStudy(userProfile)]?.[currentQIndex]?.options ? (
+                {currentQ.options ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {fieldQuestions[getFieldOfStudy(userProfile)]?.[currentQIndex]?.options?.map((opt) => (
+                    {currentQ.options.map((opt) => (
                       <button
                         key={opt}
                         type="button"
@@ -1099,12 +1181,11 @@ export default function DashboardPage() {
                     onChange={(e) => {
                       setCalibrationAnswers({ ...calibrationAnswers, [currentQIndex]: e.target.value });
                     }}
-                    placeholder={fieldQuestions[getFieldOfStudy(userProfile)]?.[currentQIndex]?.placeholder}
+                    placeholder={currentQ.placeholder}
                     className="w-full px-4 py-3.5 bg-surface-2 border-2 border-[#333] text-foreground text-xs font-bold uppercase tracking-wider focus:border-bauhaus-yellow focus:shadow-[3px_3px_0px_0px_#EAB308] transition-all outline-none"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && (calibrationAnswers[currentQIndex]?.trim())) {
-                        const totalQs = fieldQuestions[getFieldOfStudy(userProfile)]?.length || 5;
                         if (currentQIndex < totalQs - 1) {
                           setCurrentQIndex(currentQIndex + 1);
                         } else {
@@ -1129,7 +1210,7 @@ export default function DashboardPage() {
                   Back
                 </button>
                 
-                {currentQIndex < (fieldQuestions[getFieldOfStudy(userProfile)]?.length || 5) - 1 ? (
+                {currentQIndex < totalQs - 1 ? (
                   <button
                     type="button"
                     onClick={() => {

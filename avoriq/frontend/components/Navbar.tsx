@@ -233,7 +233,7 @@ export default function Navbar() {
       {/* ── User Profile Modal ── */}
       <AnimatePresence>
         {showProfileModal && user && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] overflow-y-auto p-4 flex justify-center items-center">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -248,7 +248,7 @@ export default function Navbar() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="relative w-full max-w-md max-h-[90vh] bg-surface border-3 border-foreground p-6 brutal-shadow-lg z-50 text-foreground flex flex-col overflow-y-auto"
+              className="relative w-full max-w-md my-auto bg-surface border-3 border-foreground p-6 brutal-shadow-lg z-50 text-foreground flex flex-col"
             >
               <div className="flex items-center justify-between mb-6 border-b-2 border-[#333] pb-4">
                 <h3 className="font-black text-lg uppercase tracking-wider text-foreground flex items-center gap-2">

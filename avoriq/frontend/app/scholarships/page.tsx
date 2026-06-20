@@ -44,14 +44,20 @@ export default function ScholarshipsFinderPage() {
       const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         s.provider.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter ? s.category === categoryFilter : true;
-      const matchesEducation = educationFilter ? s.eligibility.educationLevel.includes(educationFilter) : true;
+      const matchesEducation = educationFilter
+        ? (educationFilter === "High School"
+            ? s.eligibility.educationLevel.some(lvl => ["Class 6–10", "Class 11–12", "Diploma", "High School", "All"].includes(lvl))
+            : s.eligibility.educationLevel.some(lvl => [educationFilter, "All"].includes(lvl)))
+        : true;
       
       // Auto-match profile constraints if user is logged in and profile exists
       let matchesProfile = true;
       if (userProfile) {
         const matchesGender = s.eligibility.gender === "All" || s.eligibility.gender === userProfile.gender;
-        const matchesIncome = s.eligibility.familyIncomeMax === 0 || userProfile.familyIncomeMax <= s.eligibility.familyIncomeMax;
-        const matchesState = s.eligibility.states.includes("All") || s.eligibility.states.includes(userProfile.state);
+        const userIncome = userProfile.familyIncomeMax !== undefined ? userProfile.familyIncomeMax : userProfile.familyIncome;
+        const matchesIncome = s.eligibility.familyIncomeMax === 0 || userIncome === undefined || userIncome === null || userIncome <= s.eligibility.familyIncomeMax;
+        const matchesState = s.eligibility.states.some(st => ["All", "All India", "All Regions", "Other / Global", userProfile.state].includes(st)) ||
+                             s.eligibility.states.includes(userProfile.state);
         matchesProfile = matchesGender && matchesIncome && matchesState;
       }
       
@@ -76,9 +82,7 @@ export default function ScholarshipsFinderPage() {
 
   const educationLevels = [
     { label: "All Levels", value: "" },
-    { label: "Class 6–10", value: "Class 6–10" },
-    { label: "Class 11–12", value: "Class 11–12" },
-    { label: "Diploma", value: "Diploma" },
+    { label: "High School", value: "High School" },
     { label: "Undergraduate (UG)", value: "UG" },
     { label: "Postgraduate (PG)", value: "PG" },
   ];

@@ -72,6 +72,7 @@ class UserProfileDB(Base):
     __tablename__ = "user_profiles"
 
     uid = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=True)
     email = Column(String, nullable=False)
     education_level = Column(String, nullable=True)
     gender = Column(String, nullable=True)
@@ -83,6 +84,7 @@ class UserProfileDB(Base):
 
     def to_dict(self):
         return {
+            "name": self.name,
             "educationLevel": self.education_level,
             "gender": self.gender,
             "familyIncomeMax": self.family_income_max,

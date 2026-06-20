@@ -23,7 +23,7 @@ interface ChatEngineProps {
 
 export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: ChatEngineProps) {
   const { isLimitReached, incrementMessageCount } = useChatLimit();
-  const { userProfile, user } = useAuth();
+  const { userProfile } = useAuth();
   const { threads, activeThreadId, updateThreadMessages } = useChat();
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
 

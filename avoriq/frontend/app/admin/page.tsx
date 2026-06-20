@@ -10,7 +10,8 @@ import {
   HelpCircle, 
   Database,
   ArrowRight,
-  RefreshCw
+  RefreshCw,
+  Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "../../components/ui/Badge";
@@ -48,6 +49,8 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [adminId, setAdminId] = useState(process.env.NEXT_PUBLIC_ADMIN_ID || "");
+  const [adminPassword, setAdminPassword] = useState(process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -98,6 +101,11 @@ export default function AdminPage() {
   const handleUpload = async () => {
     if (!file) return;
 
+    if (!adminId || !adminPassword) {
+      setError("Admin ID and Admin Password are required.");
+      return;
+    }
+
     setUploading(true);
     setError(null);
     setResult(null);
@@ -108,8 +116,13 @@ export default function AdminPage() {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     try {
+      const headers: Record<string, string> = {};
+      if (adminId) headers["X-Admin-Id"] = adminId;
+      if (adminPassword) headers["X-Admin-Password"] = adminPassword;
+
       const response = await fetch(`${apiBase}/api/admin/upload-csv`, {
         method: "POST",
+        headers: headers,
         body: formData,
       });
 
@@ -162,6 +175,40 @@ export default function AdminPage() {
           
           {/* Left Panel: Upload Tool */}
           <div className="lg:col-span-7 space-y-6">
+            {/* Credentials Section */}
+            <div className="border-3 border-foreground p-6 bg-surface brutal-shadow">
+              <h3 className="font-black text-sm uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-bauhaus-red" />
+                Admin Authentication
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1.5 tracking-wider">
+                    Admin ID
+                  </label>
+                  <input
+                    type="text"
+                    value={adminId}
+                    onChange={(e) => setAdminId(e.target.value)}
+                    placeholder="e.g. admin"
+                    className="w-full bg-[#111] border-2 border-[#333] focus:border-foreground text-foreground px-4 py-2.5 text-xs font-mono focus:outline-none transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1.5 tracking-wider">
+                    Admin Password
+                  </label>
+                  <input
+                    type="password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    placeholder="Enter admin password"
+                    className="w-full bg-[#111] border-2 border-[#333] focus:border-foreground text-foreground px-4 py-2.5 text-xs font-mono focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div 
               onDragEnter={handleDrag}
               onDragOver={handleDrag}

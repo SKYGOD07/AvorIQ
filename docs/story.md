@@ -1,65 +1,95 @@
-# AvorIQ: The AI Second Brain for Students
+# AvorIQ: The AI-Powered Benefits Navigator & Student Second Brain
 
 ## Inspiration
 
-Millions of students globally make important educational and career decisions using fragmented information from online forums, random Google searches, and advice from acquaintances. Students often miss scholarships, opportunities, deadlines, and career pathways simply because they lack personalized guidance.
+Every year, millions of students at High School, Undergraduate (UG), and Postgraduate (PG) levels make critical, life-altering decisions using fragmented information. They rely on hearsay, ad-heavy blogs, random YouTube videos, and advice from acquaintances.
 
-We wanted to build an AI system that does more than answer questions. We asked ourselves:
+The problem is particularly acute in the financial aid and scholarship space. Sifting through hundreds of disconnected websites, dealing with dense bureaucratic rules, and trying to separate genuine institutional support from phishing scams is exhausting.deserving students miss out on scholarships simply because they missed a hidden deadline, misunderstood an eligibility clause, or fell victim to a scam registry.
 
-> What if every student had an educational companion that understood how they learn, what they aspire to become, and guided them toward meaningful action?
+We wanted to build a platform that does not just answer queries, but acts as a trusted **Benefits Navigator** and academic companion. We asked:
+> Can we build a hybrid AI system that is conversational enough to understand a student’s story, but mathematically precise enough to verify eligibility and detect scams?
 
-That idea became **AvorIQ**.
+That question led to **AvorIQ**.
 
-## What it does
+---
 
-AvorIQ is an AI-powered educational second brain designed for High School, Undergraduate (UG), and Postgraduate (PG) students. Instead of giving the same answers to everyone, it continuously adapts to each student's preferences, goals, and constraints.
+## What it Does (Our Core USP)
 
-Students can describe their ambitions in natural language, such as:
+AvorIQ is a personalized educational second brain and benefits navigator. Instead of treating every student the same, it continuously adapts recommendations and matches scholarships to each student's unique academic and socioeconomic profile.
 
-> "I want to become an AI Engineer."
+The **Core USP** of AvorIQ lies in its **Hybrid Safety & Matching Architecture**:
+1. **Scam Prevention & Trust Classification:** It programmatically scores the trustworthiness of scholarship listings. If a link doesn't originate from a verified educational domain (e.g., `.edu`, `.ac.in`) or a government domain (e.g., `.gov`, `.gov.in`), it is flagged or filtered out. This protects students from data-harvesting or financial scams.
+2. **Deterministic Demographic Scoring:** While conversational models are great at chat, they are notoriously prone to math errors and criteria hallucinations. AvorIQ separates the conversation (handled by AI) from the eligibility check (handled by a strict, mathematical matching engine). It scores profiles against rules (domicile state, income caps, caste categories, academic streams, and genders) with zero margin for error.
+3. **Application Tracking Lifecycle:** Students don't just find scholarships; they manage their documents, track application milestones (Saved → Verified → Applied → Approved → Funds Received), and celebrate milestones with reward confetti.
+4. **Under-Calibration AI Suite:** In addition to matching, the monorepo is built to host a local AI Study Planner and Exam Assistant, currently being tuned to prevent model drift and hallucination.
 
-AvorIQ asks follow-up questions to understand their situation, preferred learning style, available study time, and existing knowledge. It then generates a personalized roadmap with learning resources, projects, opportunities, and actionable next steps.
+---
 
-Rather than simply retrieving information, AvorIQ transforms uncertainty into structured execution plans.
+## How We Built It (The Technical Reality)
 
-## How we built it
-
-AvorIQ combines conversational AI with adaptive recommendation mechanisms.
-
-Workflow:
+AvorIQ is built as a highly structured, scalable monorepo divided into two main layers:
 
 ```mermaid
 graph TD
-    A[Student Query] --> B[Intent Understanding]
-    B --> C[Preference Analysis]
-    C --> D[Cross-Questioning]
-    D --> E[Knowledge Retrieval]
-    E --> F[Recommendation Engine]
-    F --> G[Personalized Action Plan]
-    G --> H[Feedback Collection]
-    H -->|Smarter Future Recommendations| B
+    A[User Profile Questionnaire & Chat] --> B[FastAPI Backend / Profile Memory]
+    B -->|Regex & NLP Extraction| C[User Profile Signals]
+    D[Web Portals & Aggregators] -->|scrape_scholarships.py| E[Raw Scholarship Dataset]
+    E --> F[Authenticity Scoring Engine]
+    F -->|Heuristics & Suffix Filters| G[Trust-Scored Catalog]
+    C --> H[Matching & Eligibility Engine]
+    G --> H
+    H -->|Multi-Attribute Scoring| I[Curated Dashboard / Recommendations]
+    B -->|Semantic Context| J[Ollama: Gemma 3 4B]
+    J -->|Conversational RAG (Under Calibration)| K[AI Chat Assistant Output]
 ```
 
-The system uses a structured knowledge base containing educational resources, opportunities, and career pathways to provide grounded recommendations with citations.
+### 1. The Frontend (Next.js 16 + React 19 + Tailwind CSS)
+* **Design Language:** A striking Bauhaus Neo-Brutalist interface using charcoal dark modes, bold terracotta accents, uppercase typography, and thick border shadows.
+* **Offline Resilience:** Since student internet connections can be unstable, the frontend incorporates local storage caching and client-side fallback matching (`parseAndMatch` token matcher) so the application remains fast and operational even when the backend is offline.
+* **Animations:** Framer Motion for smooth modal overlays and Canvas Confetti for task completion feedback.
 
-## Challenges we ran into
+### 2. The Backend & Data Scrapers (FastAPI + Python + SQLite)
+* **Custom Scraper (`scrape_scholarships.py`):** Automatically aggregates scholarship records, normalizes data fields (deadlines, rewards, eligibility), and exports them into structured JSONL/CSV registries.
+* **Authenticity Scoring (`authenticity.py`):** Evaluates listing safety based on suffix analysis (`.gov.in`, `.nic.in`, `.ac.in`), link structure, and description density to output an Authenticity Score (0-100).
+* **Profile Memory (`profile_memory.py`):** Parses user messages to extract demographic tags (age, state, stream, gender, income) and updates the student profile dynamically.
 
-One of our biggest challenges was avoiding generic AI responses. We wanted recommendations to reflect individual learning preferences instead of popularity.
+### 3. Local AI Engine (Ollama + Gemma 3 4B)
+* Runs a local instance of the **Gemma 3 4B** chat model and **Nomic Embed Text** for retrieval-augmented generation (RAG) using PostgreSQL with the `pgvector` extension.
 
-Another challenge was balancing personalization with responsible AI practices. Educational guidance should empower students without replacing their own decision-making. We designed AvorIQ to present multiple pathways, provide trusted sources, and encourage students to remain in control of important life decisions.
+---
 
-## Accomplishments that we're proud of
+## Challenges We Ran Into
 
-We built an AI system that learns from conversations and adapts over time instead of treating every student the same.
+### 1. The Danger of AI Hallucinations in Financial Aid
+If an AI model misleads a student about a deadline, an income cap, or a document checklist, the student might lose their chance at funding. We realized we **could not trust raw LLMs** to do the matching. 
+* *The Solution:* We designed a hybrid model. The LLM only interprets the conversational intent, while a deterministic Python/TypeScript engine performs the actual eligibility calculation.
 
-Most educational AI answers questions.
+### 2. Messy, Unstructured Scraped Web Data
+Scholarship sites have notoriously inconsistent HTML formatting, broken links, and outdated deadlines.
+* *The Solution:* We wrote a strict parsing parser that normalizes scraped data fields, checks domain suffix trees, and scores details. If critical fields are missing, the scholarship is flagged for manual review rather than showing faulty data.
 
-AvorIQ learns who the student is.
+### 3. Backend Portability and Offline Development
+Setting up local databases, pgvector, and heavy LLM models can prevent easy developer setup.
+* *The Solution:* We built a complete frontend preview mode backed by `localStorage` that mimics the entire database workflow, allowing developers and reviewers to test the core features instantly without local database dependencies.
 
-## What we learned
+---
 
-Building AvorIQ taught us that meaningful AI is not about generating more information—it's about helping people think clearly, understand trade-offs, and take confident next steps.
+## Accomplishments We're Proud Of
 
-## What's next for AvorIQ
+1. **Scam Filtering Engine:** We successfully implemented a trust heuristic that helps protect students from scholarship registry scams by verifying domain origins.
+2. **Brutalist Design Execution:** We broke away from generic, boring SaaS gradients and created a bold Bauhaus Neo-Brutalist visual identity that feels fresh and premium.
+3. **Robust Monorepo Structure:** The backend and frontend are built to scale, allowing new data sources and scrapers to be added with minimal configuration.
 
-Our long-term vision is to evolve AvorIQ into a lifelong learning companion that supports students from education to career, ensuring that no student misses opportunities because they lacked guidance.
+---
+
+## What We Learned
+
+Building AvorIQ taught us that **responsible AI is deterministic AI where it matters**. In high-stakes applications like public benefits and financial aid, generative models must be heavily bounded by rule-based guardrails. AI is great at making the experience conversational, but classic code logic must handle the mathematical validation and safety verifications.
+
+---
+
+## What's Next for AvorIQ
+
+1. **Full Calibration of local LLM RAG:** Finish tuning embeddings and prompts on local CPU setups to reduce latency.
+2. **Skill-to-Career Mapping:** Integrate the Career Navigator module to map skills from high school straight through to employment pathways.
+3. **Universal Portal Syncing:** Allow students to download auto-filled templates of official application forms, streamlining the bureaucratic submission process.

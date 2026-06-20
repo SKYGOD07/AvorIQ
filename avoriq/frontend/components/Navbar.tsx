@@ -227,8 +227,8 @@ export default function Navbar() {
               )}
             </div>
           </motion.div>
-        )}
-      </header>
+      </AnimatePresence>
+    </header>
 
       {/* ── User Profile Modal ── */}
       <AnimatePresence>

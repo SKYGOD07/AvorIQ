@@ -261,8 +261,16 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       }]);
 
       try {
+        let apiMessage = userQuery;
+        if (typeof window !== "undefined") {
+          const csvData = window.localStorage.getItem("avoriq_calibration_csv");
+          if (csvData) {
+            apiMessage = `[STUDENT CALIBRATION PARAMETERS (CSV FORMAT):\n${csvData}\n]\n\nUser query: ${userQuery}`;
+          }
+        }
+
         await sendChatMessage(
-          userQuery,
+          apiMessage,
           userProfile ? {
             educationLevel: userProfile.educationLevel,
             gender: userProfile.gender,

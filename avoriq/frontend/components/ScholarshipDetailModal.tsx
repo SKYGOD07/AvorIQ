@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Scholarship } from "../types/scholarship";
 import { X, Calendar, Banknote, ShieldAlert, Award, FileText, CheckCircle2, Bookmark, BookmarkCheck, ExternalLink, Sparkles, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +23,15 @@ export default function ScholarshipDetailModal({
   const [activeTab, setActiveTab] = useState<"overview" | "eligibility" | "documents" | "steps" | "faqs">("overview");
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

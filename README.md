@@ -54,9 +54,7 @@ AvorIQ-Lab/
 │   │   └── public/              #    Static assets (logo, fonts)
 │   ├── backend/                 # 🔜 Planned: FastAPI + pgvector search
 │   ├── agents/                  # 🔜 Planned: LLM routing & intent detection
-│   ├── scripts/                 # 🔜 Planned: Scholarship data scrapers
-│   ├── whatsapp/                # 🔜 Planned: WhatsApp webhook integration
-│   └── n8n/                     # 🔜 Planned: Workflow automation
+│   └── scripts/                 # 🔜 Planned: Scholarship data scrapers
 ├── datasets/                    # Raw data for RAG pipeline
 ├── docs/                        # Architecture diagrams & specs
 ├── logo/                        # Brand assets
@@ -79,7 +77,6 @@ AvorIQ-Lab/
 - **Server**: FastAPI (Python)
 - **Database**: PostgreSQL + pgvector (vector similarity search)
 - **LLM Engine**: Ollama (Gemma 3 4B locally hosted via CPU)
-- **Automation**: n8n workflow engine
 
 ---
 
@@ -178,7 +175,7 @@ graph TD
     G --> H
     H -->|Multi-Attribute Scoring| I[Curated Dashboard / Recommendations]
     B -->|Query Context & Embeddings| J[Ollama: Gemma 3 4B]
-    J -->|Conversational RAG| K[AI Chat Assistant Output]
+    J -->|Conversational RAG (Under Calibration)| K[AI Chat Assistant Output]
 ```
 
 #### 1. Inputs (What Data Goes In)
@@ -204,7 +201,7 @@ graph TD
   * Stream/Academic focus match: +20 points.
   * Gender alignment: +10 points.
   * Income threshold check: Strict absolute validation (must be below max income cap).
-* **Conversational RAG Routing**: User queries trigger semantic vector matches (using `nomic-embed-text` on PGVector). The local LLM synthesizes answers with exact citations and document checklists. If the backend is offline, the system seamlessly falls back to a fast client-side token matcher.
+* **Conversational RAG Routing (Under Calibration)**: Semantic vector matching and LLM response synthesis are currently under calibration to tune accuracy and optimize model response latency. While this advanced module is calibrated, user queries utilize a robust client-side token matcher to maintain a high-speed, zero-downtime offline experience.
 
 #### 4. Outputs (What the User Receives)
 * **Relevance-Ranked Feed**: An interactive, eligibility-scored dashboard showing exact percentage matches.

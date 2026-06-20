@@ -248,14 +248,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
         return t;
       });
-
-      // Synchronize with database in the background if logged in
-      if (user) {
-        syncChatHistory(user.uid, newMessages, id);
-      }
-
       return updated;
     });
+
+    // Synchronize with database in the background if logged in
+    // Only sync if there are real messages (not just the welcome message)
+    const hasRealMessages = newMessages.some((m) => m.sender === "user");
+    if (user && hasRealMessages) {
+      const toSync = newMessages.filter((m) => !m.isStreaming);
+      syncChatHistory(user.uid, toSync, id);
+    }
   };
 
   return (

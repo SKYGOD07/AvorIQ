@@ -27,28 +27,9 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
   const { threads, activeThreadId, updateThreadMessages } = useChat();
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
 
-  const activeThread = threads.find((t) => t.id === activeThreadId);
-  const rawMessages = activeThread?.messages || [];
-
-  const messages = rawMessages.length > 0
-    ? rawMessages
-    : [
-        {
-          id: "1",
-          sender: "ai" as const,
-          text: isBackendOnline
-            ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
-            : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
-        },
-      ];
-
-  const setMessages = useCallback(
-    (updater: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
-      const nextMessages = typeof updater === "function" ? updater(rawMessages) : updater;
-      updateThreadMessages(activeThreadId, nextMessages);
-    },
-    [activeThreadId, rawMessages, updateThreadMessages]
-  );
+  // ── Local message state (React batches these correctly) ──
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const loadedThreadRef = useRef<string | null>(null);
 
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -63,6 +44,32 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       setIsBackendOnline(online);
     });
   }, []);
+
+  // Load messages from context when thread changes
+  useEffect(() => {
+    if (activeThreadId !== loadedThreadRef.current) {
+      const thread = threads.find((t) => t.id === activeThreadId);
+      const initialText = isBackendOnline
+        ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+        : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.";
+
+      if (thread && thread.messages.length > 0) {
+        setMessages(thread.messages.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m)));
+      } else {
+        setMessages([{ id: "1", sender: "ai", text: initialText }]);
+      }
+      loadedThreadRef.current = activeThreadId;
+      setIsTyping(false);
+    }
+  }, [activeThreadId, threads, isBackendOnline]);
+
+  // Sync local messages back to context when streaming finishes
+  useEffect(() => {
+    const isCurrentlyStreaming = messages.some((m) => m.isStreaming);
+    if (!isCurrentlyStreaming && messages.length > 0 && loadedThreadRef.current === activeThreadId) {
+      updateThreadMessages(activeThreadId, messages);
+    }
+  }, [messages, activeThreadId, updateThreadMessages]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -317,11 +324,18 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       {/* Top Bar with Status and Actions */}
       <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
         {/* Reset Chat Button */}
-        {rawMessages.length > 0 && (
+        {messages.length > 1 && (
           <button
             onClick={() => {
               if (confirm("Are you sure you want to clear the chat history?")) {
-                setMessages([]);
+                const initialMsg: ChatMessage = {
+                  id: "1",
+                  sender: "ai",
+                  text: isBackendOnline
+                    ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+                    : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
+                };
+                setMessages([initialMsg]);
               }
             }}
             className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border border-bauhaus-red/30 text-bauhaus-red hover:bg-bauhaus-red hover:text-white transition-all cursor-pointer bg-background"

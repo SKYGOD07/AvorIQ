@@ -230,13 +230,21 @@ export async function sendChatMessageBatch(
 
 // ── User Profiles ──
 
-export async function fetchUserProfile(uid: string): Promise<any | null> {
+/**
+ * Fetch user profile from backend.
+ * Returns:
+ *   - profile object on success (200)
+ *   - null if profile not found (404)
+ *   - undefined if backend is unreachable or returned a server error
+ */
+export async function fetchUserProfile(uid: string): Promise<any | null | undefined> {
   try {
-    const res = await fetch(`${API_BASE}/api/users/${uid}/profile`);
-    if (!res.ok) return null;
+    const res = await fetch(`${API_BASE}/api/users/${uid}/profile`, { signal: AbortSignal.timeout(5000) });
+    if (res.status === 404) return null; // Profile genuinely doesn't exist
+    if (!res.ok) return undefined; // Server error — don't assume no profile
     return await res.json();
   } catch {
-    return null;
+    return undefined; // Network error — backend unreachable
   }
 }
 

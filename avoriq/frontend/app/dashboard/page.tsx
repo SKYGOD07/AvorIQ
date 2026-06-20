@@ -243,7 +243,7 @@ const featureModules = [
     title: "AI Study Planner",
     desc: "Adaptive roadmaps tailored to your target syllabus and exam timeline.",
     icon: Calendar,
-    href: "/chat",
+    href: "/chat?planner=true",
     color: "#22C55E",
     badge: "ACTIVE",
   },
@@ -252,7 +252,7 @@ const featureModules = [
     title: "Exam Prep Assistant",
     desc: "Mock papers, instant grading, and performance analytics.",
     icon: Award,
-    href: "/chat",
+    href: "/chat?planner=true",
     color: "#EAB308",
     badge: "ACTIVE",
   },
@@ -628,8 +628,23 @@ export default function DashboardPage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-12 h-12 border-4 border-bauhaus-red border-t-transparent animate-spin" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground gap-6">
+        <div className="flex gap-2 items-center justify-center h-8">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <motion.div
+              key={i}
+              className="w-3.5 h-6 bg-bauhaus-red brutal-shadow-xs"
+              animate={{ opacity: [0.15, 1, 0.15], scaleY: [0.8, 1.2, 0.8] }}
+              transition={{
+                repeat: Infinity,
+                duration: 1,
+                delay: i * 0.12,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 animate-pulse">Initializing Dashboard...</span>
       </div>
     );
   }

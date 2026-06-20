@@ -29,11 +29,28 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper to read cached questionnaire status from localStorage
+const getCachedQuestionnaireStatus = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem("avoriq_questionnaire_done") === "true";
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] = useState(false);
+  const [isQuestionnaireCompleted, setIsQuestionnaireCompleted] = useState(getCachedQuestionnaireStatus);
   const [userProfile, setUserProfile] = useState<any | null>(null);
+
+  // Persist questionnaire status to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (isQuestionnaireCompleted) {
+        window.localStorage.setItem("avoriq_questionnaire_done", "true");
+      } else {
+        window.localStorage.removeItem("avoriq_questionnaire_done");
+      }
+    }
+  }, [isQuestionnaireCompleted]);
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
@@ -66,12 +83,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             fetchUserProfile(uid).then((profile) => {
               if (profile) {
+                // Profile found in backend
                 setUserProfile(profile);
                 setIsQuestionnaireCompleted(true);
-              } else {
+              } else if (profile === null) {
+                // Backend responded 404 — profile genuinely doesn't exist
                 setUserProfile(null);
                 setIsQuestionnaireCompleted(false);
               }
+              // If undefined (backend unreachable), keep the cached localStorage value
               setLoading(false);
             });
             return;
@@ -110,19 +130,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const profile = await fetchUserProfile(currentUser.uid);
           if (profile) {
+            // Profile found in backend
             setUserProfile(profile);
             setIsQuestionnaireCompleted(true);
-          } else {
+          } else if (profile === null) {
+            // Backend responded 404 — profile genuinely doesn't exist
             setUserProfile(null);
             setIsQuestionnaireCompleted(false);
           }
+          // If undefined (backend unreachable), keep the cached localStorage value
         } catch (e) {
           console.error("Error fetching user profile:", e);
-          setUserProfile(null);
-          setIsQuestionnaireCompleted(false);
+          // Don't reset questionnaire status on network errors
         }
       } else {
         window.localStorage.removeItem("avoriq_auth_token");
+        window.localStorage.removeItem("avoriq_questionnaire_done");
         setIsQuestionnaireCompleted(false);
         setUserProfile(null);
       }
@@ -154,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (profile) {
         setUserProfile(profile);
         setIsQuestionnaireCompleted(true);
-      } else {
+      } else if (profile === null) {
         setUserProfile(null);
         setIsQuestionnaireCompleted(false);
       }
@@ -201,7 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (profile) {
         setUserProfile(profile);
         setIsQuestionnaireCompleted(true);
-      } else {
+      } else if (profile === null) {
         setUserProfile(null);
         setIsQuestionnaireCompleted(false);
       }
@@ -227,6 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isFirebaseConfigured) {
       setUser(null);
       window.localStorage.removeItem("avoriq_auth_token");
+      window.localStorage.removeItem("avoriq_questionnaire_done");
       setIsQuestionnaireCompleted(false);
       setUserProfile(null);
       return;

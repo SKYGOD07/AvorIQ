@@ -62,6 +62,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             // Group by chatId
             const groups: Record<string, ChatMessage[]> = {};
             rawMessages.forEach((msg: any) => {
+              if (msg.id === "1") return; // Skip welcome message stored in DB
               const chatId = msg.chatId || "default";
               if (!groups[chatId]) {
                 groups[chatId] = [];
@@ -233,7 +234,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const updateThreadMessages = useCallback((id: string, newMessages: ChatMessage[]) => {
+    let hadRealMessages = false;
+
     setThreads((prev) => {
+      const existingThread = prev.find((t) => t.id === id);
+      hadRealMessages = existingThread ? existingThread.messages.some((m) => m.sender === "user") : false;
+
       const updated = prev.map((t) => {
         if (t.id === id) {
           const sanitized = newMessages.map((m) =>
@@ -252,11 +258,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Synchronize with database in the background if logged in
-    // Only sync if there are real messages (not just the welcome message)
     const hasRealMessages = newMessages.some((m) => m.sender === "user");
-    if (user && hasRealMessages) {
-      const toSync = newMessages.filter((m) => !m.isStreaming);
-      syncChatHistory(user.uid, toSync, id);
+    if (user) {
+      if (hasRealMessages) {
+        // Filter out welcome message (id === "1") and streaming messages
+        const toSync = newMessages.filter((m) => !m.isStreaming && m.id !== "1");
+        syncChatHistory(user.uid, toSync, id);
+      } else if (hadRealMessages) {
+        // Only clear from DB if it previously had real messages (i.e. user cleared it)
+        clearChatHistory(user.uid, id);
+      }
     }
   }, [user]);
 

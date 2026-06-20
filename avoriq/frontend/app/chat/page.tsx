@@ -17,7 +17,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-64px)] mt-16 w-full overflow-hidden flex flex-col">
+    <div className="h-full w-full overflow-hidden flex flex-col">
       <ChatEngine 
         onOpenDetails={setSelectedScholarship}
         savedIds={savedIds}

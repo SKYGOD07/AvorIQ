@@ -9,7 +9,6 @@ pages and Buddy4Study listing/detail pages, then writes:
 - `summary.json` with counts and output paths
 
 ## Setup
-
 ```powershell
 cd E:\AvorIQ-Lab
 python -m venv .venv

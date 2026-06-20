@@ -50,7 +50,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
     if (activeThreadId !== loadedThreadRef.current) {
       const thread = threads.find((t) => t.id === activeThreadId);
       const initialText = isBackendOnline
-        ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+        ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by AvorIQ AI — ask me anything about scholarships."
         : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.";
 
       if (thread && thread.messages.length > 0) {
@@ -363,7 +363,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
                   id: "1",
                   sender: "ai",
                   text: isBackendOnline
-                    ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+                    ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by AvorIQ AI — ask me anything about scholarships."
                     : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
                 };
                 setMessages([initialMsg]);
@@ -475,7 +475,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
               <div className="flex items-center gap-1.5 px-2 font-mono text-xs text-bauhaus-red">
                 <span className="animate-pulse">█</span>
                 <span className="text-slate-500">
-                  {isBackendOnline ? "thinking with gemma..." : "processing..."}
+                  {isBackendOnline ? "thinking..." : "processing..."}
                 </span>
               </div>
             </div>
@@ -545,7 +545,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
           </div>
           <p className="text-center text-[10px] text-slate-600 mt-3 font-black uppercase tracking-widest">
             {isBackendOnline
-              ? "Powered by Gemma 3 + pgvector. AvorIQ can make mistakes."
+              ? "Powered by AvorIQ AI. AvorIQ can make mistakes."
               : "AvorIQ can make mistakes. Verify important information."}
           </p>
         </div>

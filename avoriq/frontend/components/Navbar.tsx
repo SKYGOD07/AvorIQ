@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext";
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -47,6 +48,10 @@ export default function Navbar() {
   const visibleLinks = user
     ? siteContent.navLinks.filter((link) => link.href !== "/")
     : [];
+
+  if (pathname?.startsWith("/chat")) {
+    return null;
+  }
 
   return (
     <>

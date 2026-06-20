@@ -8,16 +8,11 @@ import { Scholarship } from "../types/scholarship";
 import { mockScholarships, indianStates } from "../data/scholarships";
 import ScholarshipCard from "./ScholarshipCard";
 import { useChatLimit } from "../hooks/useChatLimit";
-import { sendChatMessage, checkBackendHealth, fetchChatHistory, syncChatHistory, clearChatHistory } from "../lib/api";
+import { sendChatMessage, checkBackendHealth } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { useChat, ChatMessage } from "../context/ChatContext";
 
-export interface ChatMessage {
-  id: string;
-  sender: "user" | "ai";
-  text: string;
-  results?: Scholarship[];
-  isStreaming?: boolean;
-}
+export type { ChatMessage };
 
 interface ChatEngineProps {
   onOpenDetails: (scholarship: Scholarship) => void;
@@ -28,14 +23,32 @@ interface ChatEngineProps {
 export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: ChatEngineProps) {
   const { isLimitReached, incrementMessageCount } = useChatLimit();
   const { userProfile, user } = useAuth();
+  const { threads, activeThreadId, updateThreadMessages } = useChat();
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      sender: "ai",
-      text: "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
+
+  const activeThread = threads.find((t) => t.id === activeThreadId);
+  const rawMessages = activeThread?.messages || [];
+
+  const messages = rawMessages.length > 0
+    ? rawMessages
+    : [
+        {
+          id: "1",
+          sender: "ai" as const,
+          text: isBackendOnline
+            ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+            : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
+        },
+      ];
+
+  const setMessages = useCallback(
+    (updater: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+      const nextMessages = typeof updater === "function" ? updater(rawMessages) : updater;
+      updateThreadMessages(activeThreadId, nextMessages);
     },
-  ]);
+    [activeThreadId, rawMessages, updateThreadMessages]
+  );
+
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -43,46 +56,12 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load chat history from PostgreSQL on mount / user change
+  // Check backend health on mount
   useEffect(() => {
-    checkBackendHealth().then(async (online) => {
+    checkBackendHealth().then((online) => {
       setIsBackendOnline(online);
-      
-      const initialText = online
-        ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
-        : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.";
-        
-      if (user) {
-        try {
-          const history = await fetchChatHistory(user.uid);
-          if (history && history.length > 0) {
-            // Clean up any hanging streaming indicators
-            const cleaned = history.map((m) => 
-              m.isStreaming ? { ...m, isStreaming: false } : m
-            );
-            setMessages(cleaned);
-          } else {
-            setMessages([{ id: "1", sender: "ai", text: initialText }]);
-          }
-        } catch (e) {
-          console.error("Failed to load chat history from DB:", e);
-          setMessages([{ id: "1", sender: "ai", text: initialText }]);
-        }
-      } else {
-        setMessages([{ id: "1", sender: "ai", text: initialText }]);
-      }
     });
-  }, [user]);
-
-  // Sync chat history to database when messages update
-  useEffect(() => {
-    if (user && messages.length > 0) {
-      const isCurrentlyStreaming = messages.some((m) => m.isStreaming);
-      if (!isCurrentlyStreaming) {
-        syncChatHistory(user.uid, messages);
-      }
-    }
-  }, [messages, user]);
+  }, []);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -310,7 +289,8 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
               fallbackToMock(userQuery);
             },
           },
-          activeScholarships
+          activeScholarships,
+          messages
         );
       } catch {
         // Network error — fall back to mock
@@ -336,21 +316,11 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       {/* Top Bar with Status and Actions */}
       <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
         {/* Reset Chat Button */}
-        {messages.length > 1 && (
+        {rawMessages.length > 0 && (
           <button
-            onClick={async () => {
+            onClick={() => {
               if (confirm("Are you sure you want to clear the chat history?")) {
-                const initialMsg: ChatMessage = {
-                  id: "1",
-                  sender: "ai",
-                  text: isBackendOnline
-                    ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
-                    : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
-                };
-                setMessages([initialMsg]);
-                if (user) {
-                  await clearChatHistory(user.uid);
-                }
+                setMessages([]);
               }
             }}
             className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border border-bauhaus-red/30 text-bauhaus-red hover:bg-bauhaus-red hover:text-white transition-all cursor-pointer bg-background"

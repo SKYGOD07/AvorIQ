@@ -51,3 +51,9 @@ async def init_db():
             await conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS name VARCHAR"))
         except Exception:
             pass
+
+        # Failsafe migration: Add chat_id column to chat_messages if missing
+        try:
+            await conn.execute(text("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS chat_id VARCHAR DEFAULT 'default'"))
+        except Exception:
+            pass

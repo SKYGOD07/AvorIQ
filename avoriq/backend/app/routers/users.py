@@ -95,10 +95,18 @@ async def get_chat_history(uid: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/{uid}/chat")
-async def sync_chat_history(uid: str, sync_data: ChatHistorySync, db: AsyncSession = Depends(get_db)):
-    """Overwrite/synchronise the user's chat history in the PostgreSQL database."""
-    # Delete existing chat messages for this user to perform a clean sync
-    await db.execute(delete(ChatMessageDB).where(ChatMessageDB.uid == uid))
+async def sync_chat_history(
+    uid: str, 
+    sync_data: ChatHistorySync, 
+    chatId: str = "default", 
+    db: AsyncSession = Depends(get_db)
+):
+    """Overwrite/synchronise the user's chat history for a specific chat ID in the PostgreSQL database."""
+    # Delete existing chat messages for this user and chatId to perform a clean sync
+    await db.execute(
+        delete(ChatMessageDB)
+        .where(ChatMessageDB.uid == uid, ChatMessageDB.chat_id == chatId)
+    )
     
     # Insert new messages
     for i, msg in enumerate(sync_data.messages):
@@ -107,6 +115,7 @@ async def sync_chat_history(uid: str, sync_data: ChatHistorySync, db: AsyncSessi
         db_msg = ChatMessageDB(
             id=msg.id,
             uid=uid,
+            chat_id=chatId,
             sender=msg.sender,
             text=msg.text,
             created_at=created_at,
@@ -119,8 +128,18 @@ async def sync_chat_history(uid: str, sync_data: ChatHistorySync, db: AsyncSessi
 
 
 @router.delete("/{uid}/chat")
-async def clear_chat_history(uid: str, db: AsyncSession = Depends(get_db)):
-    """Delete all chat logs for a specific authenticated user."""
-    await db.execute(delete(ChatMessageDB).where(ChatMessageDB.uid == uid))
+async def clear_chat_history(
+    uid: str, 
+    chatId: str | None = None, 
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete chat logs for a specific chat ID or all chat logs if chatId is not provided."""
+    if chatId:
+        await db.execute(
+            delete(ChatMessageDB)
+            .where(ChatMessageDB.uid == uid, ChatMessageDB.chat_id == chatId)
+        )
+    else:
+        await db.execute(delete(ChatMessageDB).where(ChatMessageDB.uid == uid))
     await db.commit()
     return {"status": "success", "message": "Chat history cleared"}

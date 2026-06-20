@@ -10,10 +10,13 @@ import {
   ChevronRight,
   Sparkles,
   LogOut,
-  User
+  User,
+  Trash2,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
+import { useChat } from "../../context/ChatContext";
 
 export default function ChatLayout({
   children,
@@ -22,13 +25,15 @@ export default function ChatLayout({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { user, logout } = useAuth();
-
-  // Mock chat history
-  const recentChats = [
-    { id: "1", title: "Engineering Scholarships in India" },
-    { id: "2", title: "Study Abroad Roadmap" },
-    { id: "3", title: "AI Second Brain Research" },
-  ];
+  const { 
+    threads, 
+    activeThreadId, 
+    setActiveThreadId, 
+    createThread, 
+    deleteThread,
+    clearAllThreads,
+    loading
+  } = useChat();
 
   return (
     <div className="flex h-screen bg-navy-deep text-white overflow-hidden">
@@ -43,28 +48,73 @@ export default function ChatLayout({
           >
             {/* New Chat Button */}
             <div className="p-4">
-              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all group">
+              <button 
+                onClick={() => createThread()}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5 hover:border-accent-blue/30 transition-all group cursor-pointer"
+              >
                 <Plus className="w-5 h-5 text-accent-blue" />
                 <span className="font-semibold text-sm">New Chat</span>
               </button>
             </div>
 
             {/* History List */}
-            <div className="flex-1 overflow-y-auto px-2 space-y-1 py-2">
-              <div className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                Recent Chats
+            <div className="flex-1 overflow-y-auto px-2 space-y-1 py-2 scrollbar-hide">
+              <div className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                <span>Recent Chats</span>
+                {!loading && threads.length > 1 && (
+                  <button 
+                    onClick={() => {
+                      if (confirm("Clear all chat history?")) {
+                        clearAllThreads();
+                      }
+                    }}
+                    className="hover:text-rose-400 transition-colors cursor-pointer normal-case text-[9px] font-semibold"
+                  >
+                    Clear All
+                  </button>
+                )}
               </div>
-              {recentChats.map((chat) => (
-                <button
-                  key={chat.id}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all text-left group"
-                >
-                  <MessageSquare className="w-4 h-4 text-slate-400 group-hover:text-accent-blue" />
-                  <span className="text-sm text-slate-300 truncate group-hover:text-white">
-                    {chat.title}
-                  </span>
-                </button>
-              ))}
+              
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-8 text-slate-500 gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-accent-blue" />
+                  <span className="text-[9px] uppercase tracking-wider font-semibold">Loading...</span>
+                </div>
+              ) : (
+                threads.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className={`group relative w-full flex items-center justify-between rounded-lg transition-all ${
+                      chat.id === activeThreadId 
+                        ? "bg-white/5 border border-white/10" 
+                        : "hover:bg-white/5 border border-transparent"
+                    }`}
+                  >
+                    <button
+                      onClick={() => setActiveThreadId(chat.id)}
+                      className="flex-1 flex items-center gap-3 px-3 py-2.5 text-left truncate cursor-pointer"
+                    >
+                      <MessageSquare className={`w-4 h-4 shrink-0 ${chat.id === activeThreadId ? "text-accent-blue" : "text-slate-400 group-hover:text-accent-blue"}`} />
+                      <span className={`text-sm truncate ${chat.id === activeThreadId ? "text-white font-medium" : "text-slate-300 group-hover:text-white"}`}>
+                        {chat.title}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Delete chat "${chat.title}"?`)) {
+                          deleteThread(chat.id);
+                        }
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-rose-400 transition-all cursor-pointer mr-1.5 shrink-0"
+                      title="Delete Chat"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* User Section */}

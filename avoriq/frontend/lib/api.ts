@@ -91,7 +91,8 @@ export async function sendChatMessage(
     caste?: string;
   } | null,
   callbacks: ChatStreamCallbacks,
-  activeScholarships?: Scholarship[] | null
+  activeScholarships?: Scholarship[] | null,
+  history?: any[] | null
 ): Promise<void> {
   try {
     const body: Record<string, unknown> = {
@@ -111,6 +112,15 @@ export async function sendChatMessage(
 
     if (activeScholarships) {
       body.active_scholarships = activeScholarships;
+    }
+
+    if (history) {
+      // Filter out welcome message (id === "1") and only take last 10 messages for LLM context
+      const filtered = history.filter((h) => h.id !== "1" && !h.isStreaming).slice(-10);
+      body.history = filtered.map((h) => ({
+        role: h.sender === "user" ? "user" : "assistant",
+        content: h.text,
+      }));
     }
 
     const res = await fetch(`${API_BASE}/api/chat`, {
@@ -261,7 +271,7 @@ export async function fetchChatHistory(uid: string): Promise<any[] | null> {
   }
 }
 
-export async function syncChatHistory(uid: string, messages: any[]): Promise<boolean> {
+export async function syncChatHistory(uid: string, messages: any[], chatId: string = "default"): Promise<boolean> {
   try {
     // Sanitize messages so we only sync completed (non-streaming) items
     const sanitized = messages
@@ -273,7 +283,7 @@ export async function syncChatHistory(uid: string, messages: any[]): Promise<boo
         results: m.results || [],
       }));
 
-    const res = await fetch(`${API_BASE}/api/users/${uid}/chat`, {
+    const res = await fetch(`${API_BASE}/api/users/${uid}/chat?chatId=${chatId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: sanitized }),
@@ -284,9 +294,12 @@ export async function syncChatHistory(uid: string, messages: any[]): Promise<boo
   }
 }
 
-export async function clearChatHistory(uid: string): Promise<boolean> {
+export async function clearChatHistory(uid: string, chatId?: string): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/api/users/${uid}/chat`, {
+    const url = chatId 
+      ? `${API_BASE}/api/users/${uid}/chat?chatId=${chatId}`
+      : `${API_BASE}/api/users/${uid}/chat`;
+    const res = await fetch(url, {
       method: "DELETE",
     });
     return res.ok;

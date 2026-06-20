@@ -347,8 +347,14 @@ async def chat(
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT + intent_hint},
-        {"role": "user", "content": f"CONTEXT:\n{context}\n\nSTUDENT QUESTION: {request.message}"},
     ]
+
+    if request.history:
+        for msg in request.history:
+            role = "assistant" if msg.role in ("ai", "assistant") else "user"
+            messages.append({"role": role, "content": msg.content})
+
+    messages.append({"role": "user", "content": f"CONTEXT:\n{context}\n\nSTUDENT QUESTION: {request.message}"})
 
     # Step 5: Generate response
     if request.stream:

@@ -137,7 +137,7 @@ export function filterAndSearchScholarships(
   providerFilter: string,
   sortBy: string
 ): MatchResult[] {
-  let results: MatchResult[] = [];
+  const results: MatchResult[] = [];
 
   scholarships.forEach((s) => {
     let result: MatchResult;
@@ -195,7 +195,7 @@ export function filterAndSearchScholarships(
   // Filter out ineligible ones only if profile exists, otherwise just show all search/filter matches
   // Actually, let's keep all matching, but sort by eligibility or score.
   // We can show all matching results (where isEligible = true or matches filters).
-  let filteredResults = results.filter((r) => r.isEligible);
+  const filteredResults = results.filter((r) => r.isEligible);
 
   // Sorting
   if (sortBy === "Highest Amount") {

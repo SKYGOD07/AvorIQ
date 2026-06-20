@@ -49,7 +49,8 @@ export default function Navbar() {
     : [];
 
   return (
-    <header
+    <>
+      <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isLandingPage && !scrolled
           ? "bg-transparent border-b border-white/5"
@@ -227,7 +228,7 @@ export default function Navbar() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </header>
 
       {/* ── User Profile Modal ── */}
       <AnimatePresence>
@@ -370,6 +371,6 @@ export default function Navbar() {
           </div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }

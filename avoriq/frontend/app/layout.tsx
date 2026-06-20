@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
+    <html lang="en" className="h-full scroll-smooth" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${inter.variable} min-h-screen flex flex-col bg-background text-foreground antialiased relative font-sans`}>
         <AuthProvider>
           <ChatProvider>
@@ -55,7 +55,7 @@ export default function RootLayout({
               
               <Navbar />
 
-              <main className="flex-1 flex flex-col justify-start relative">
+              <main className="flex-1 flex flex-col justify-start relative bg-background z-10 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
                 {children}
               </main>
 

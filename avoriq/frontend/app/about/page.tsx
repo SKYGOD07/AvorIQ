@@ -7,7 +7,7 @@ import AnimatedContent from "../../components/reactbits/AnimatedContent";
 export default function AboutPage() {
   const values = [
     { title: "Accessibility", desc: "Equal opportunity for students in rural villages and metro cities alike.", icon: Users },
-    { title: "Trust", desc: "Only verified sources. Direct links to official .gov.in portals.", icon: ShieldCheck },
+    { title: "Trust", desc: "Only verified sources. Direct links to official application portals.", icon: ShieldCheck },
     { title: "Equity", desc: "Specialized matching for low-income, minority, and girl students.", icon: Heart },
     { title: "Empowerment", desc: "Removing financial barriers from secondary school to postgrad.", icon: Award },
     { title: "Innovation", desc: "Cutting-edge AI matching across fragmented scholarship data.", icon: Compass },
@@ -26,7 +26,7 @@ export default function AboutPage() {
             <div className="w-24 h-[3px] bg-bauhaus-red" />
             <p className="text-slate-400 text-base leading-relaxed">
               AvorIQ stands for <strong className="text-foreground">Adaptive Vision for Opportunity and Resources Intelligence Quotient</strong>. 
-              We are an AI-powered education companion designed specifically for Indian students from Class 6 to Graduation.
+              We are an AI-powered education companion designed for High School, Undergraduate (UG), and Postgraduate (PG) students.
             </p>
           </section>
         </AnimatedContent>
@@ -39,7 +39,7 @@ export default function AboutPage() {
                 Mission
               </h2>
               <p className="text-slate-400 text-sm leading-relaxed">
-                To ensure no deserving Indian student misses educational opportunities because of lack of information. 
+                To ensure no deserving student misses educational opportunities because of lack of information. 
                 We democratize access to financial support.
               </p>
             </div>
@@ -49,7 +49,7 @@ export default function AboutPage() {
                 Vision
               </h2>
               <p className="text-slate-400 text-sm leading-relaxed">
-                To serve as an AI companion for every Indian student. Today: scholarships. 
+                To serve as an AI companion for every student. Today: scholarships. 
                 Tomorrow: career roadmaps, adaptive learning plans, and more.
               </p>
             </div>

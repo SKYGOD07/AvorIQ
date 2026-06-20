@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, Code, Briefcase, Globe, Heart } from "lucide-react";
+import { Mail, Code, Briefcase, Globe } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { siteContent } from "../data/siteContent";
 import { motion } from "framer-motion";

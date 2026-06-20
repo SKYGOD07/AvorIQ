@@ -16,9 +16,13 @@ export function matchScholarship(
   let isEligible = true;
 
   // 1. Education Level Check
-  const elMatch = scholarship.eligibility.educationLevel.some(
-    (lvl) => lvl === "All" || lvl === profile.educationLevel
-  );
+  const elMatch = scholarship.eligibility.educationLevel.some((lvl) => {
+    if (lvl === "All") return true;
+    if (profile.educationLevel === "High School") {
+      return ["Class 6–10", "Class 11–12", "Diploma", "High School"].includes(lvl);
+    }
+    return lvl === profile.educationLevel;
+  });
   if (!elMatch) {
     isEligible = false;
     reasons.push(`Course level does not match (Scholarship is for: ${scholarship.eligibility.educationLevel.join(", ")})`);
@@ -70,7 +74,7 @@ export function matchScholarship(
       score += 15;
     }
   } else {
-    reasons.push("Available to students from all Indian states");
+    reasons.push("Available to students from all states/regions");
   }
 
   // 5. Caste Category Check

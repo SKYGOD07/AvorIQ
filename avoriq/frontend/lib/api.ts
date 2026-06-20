@@ -232,6 +232,7 @@ export async function saveUserProfile(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        name: profileData.name,
         email,
         educationLevel: profileData.educationLevel,
         gender: profileData.gender,

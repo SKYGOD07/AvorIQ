@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Calendar,
@@ -21,7 +20,6 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
-  Zap,
   Download,
   RefreshCw,
   X,
@@ -75,23 +73,6 @@ function getScoreColor(score: number): { ring: string; text: string; glow: strin
   if (score >= 70) return { ring: "#22C55E", text: "text-green-400", glow: "shadow-[0_0_40px_rgba(34,197,94,0.3)]", bg: "bg-green-500/10" };
   if (score >= 40) return { ring: "#EAB308", text: "text-yellow-400", glow: "shadow-[0_0_40px_rgba(234,179,8,0.3)]", bg: "bg-yellow-500/10" };
   return { ring: "#D92A2A", text: "text-red-400", glow: "shadow-[0_0_40px_rgba(217,42,42,0.3)]", bg: "bg-red-500/10" };
-}
-
-/** Get study data from localStorage or generate default zeros */
-function getWeeklyStudyData(): number[] {
-  if (typeof window === "undefined") return [0, 0, 0, 0, 0, 0, 0];
-  const stored = localStorage.getItem("avoriq_weekly_study");
-  if (stored) {
-    try { return JSON.parse(stored); } catch { /* fall through */ }
-  }
-  return [0, 0, 0, 0, 0, 0, 0];
-}
-
-function getStudyStreak(): number {
-  if (typeof window === "undefined") return 0;
-  const stored = localStorage.getItem("avoriq_study_streak");
-  if (stored) return parseInt(stored, 10) || 0;
-  return 0;
 }
 
 /* ═══════════════════════════════════════════
@@ -484,7 +465,6 @@ function FeatureCard({
 
 export default function DashboardPage() {
   const { user, userProfile } = useAuth();
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   const [weeklyData, setWeeklyData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
@@ -593,13 +573,6 @@ export default function DashboardPage() {
     window.localStorage.setItem(`avoriq_careerInterest_${uid}`, careerInterest);
     window.localStorage.setItem(`avoriq_enableAutofill_${uid}`, String(enableAutofill));
 
-    // Also update profile data locally to propagate changes in UI
-    if (userProfile) {
-      userProfile.targetExam = targetExam;
-      userProfile.careerInterest = careerInterest;
-      userProfile.enableAutofill = enableAutofill;
-    }
-
     const field = careerInterest;
     const csvContent = generateCsv(userProfile || { name: userName }, answers, field);
 
@@ -631,12 +604,6 @@ export default function DashboardPage() {
       localStorage.removeItem("avoriq_weekly_study");
       localStorage.removeItem("avoriq_study_streak");
       localStorage.removeItem("avoriq_exam_prep_score");
-
-      if (userProfile) {
-        delete userProfile.targetExam;
-        delete userProfile.careerInterest;
-        delete userProfile.enableAutofill;
-      }
 
       setWeeklyData([0, 0, 0, 0, 0, 0, 0]);
       setStreak(0);

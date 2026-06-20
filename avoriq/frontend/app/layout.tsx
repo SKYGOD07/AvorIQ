@@ -53,7 +53,7 @@ export default function RootLayout({
             
             <Navbar />
 
-            <main className="flex-1 flex flex-col justify-start relative z-10">
+            <main className="flex-1 flex flex-col justify-start relative">
               {children}
             </main>
 

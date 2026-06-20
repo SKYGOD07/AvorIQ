@@ -29,11 +29,14 @@ export default function Navbar() {
   useEffect(() => {
     if (showProfileModal) {
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     }
     return () => {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     };
   }, [showProfileModal]);
 
@@ -236,7 +239,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowProfileModal(false)}
-              className="absolute inset-0 bg-black/85 z-40"
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm z-40"
             />
 
             {/* Modal Content */}
@@ -244,7 +247,7 @@ export default function Navbar() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="relative w-full max-w-md bg-surface border-3 border-foreground p-6 brutal-shadow-lg z-50 text-foreground"
+              className="relative w-full max-w-md max-h-[90vh] bg-surface border-3 border-foreground p-6 brutal-shadow-lg z-50 text-foreground flex flex-col overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6 border-b-2 border-[#333] pb-4">
                 <h3 className="font-black text-lg uppercase tracking-wider text-foreground flex items-center gap-2">

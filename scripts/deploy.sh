@@ -28,15 +28,6 @@ else
   exit 1
 fi
 
-# 2. Fetch and pull latest changes
-echo "📥 Fetching latest code from GitHub..."
-git fetch origin
-
-# Discard local changes if any to prevent merge conflicts in production
-echo "🔄 Aligning workspace with origin/$BRANCH..."
-git checkout "$BRANCH"
-git reset --hard "origin/$BRANCH"
-
 # 3. Navigate to Docker directory and stop running services
 echo "🛑 Stopping running Docker services..."
 cd avoriq/backend

@@ -56,4 +56,9 @@ jobs:
           script: |
             echo "Connected to server. Navigating to project directory..."
             cd ~/AvorIQ
+            echo "📥 Fetching and pulling latest changes..."
+            git fetch origin
+            git checkout main
+            git reset --hard origin/main
+            echo "🚀 Executing deployment script..."
             bash scripts/deploy.sh

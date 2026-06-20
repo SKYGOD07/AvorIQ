@@ -3,12 +3,14 @@ AvorIQ Backend — Admin Router
 Endpoints for uploading csv files and database management.
 """
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import csv
 import io
 import logging
+import os
+import base64
 from app.database import get_db
 from app.models import ScholarshipDB
 from app.services.vector_service import embed_and_store_scholarship
@@ -19,10 +21,46 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
+def verify_admin_credentials(
+    x_admin_id: str | None = Header(None, alias="X-Admin-Id"),
+    x_admin_password: str | None = Header(None, alias="X-Admin-Password"),
+    authorization: str | None = Header(None)
+):
+    expected_id = os.getenv("ADMIN_ID")
+    expected_password = os.getenv("ADMIN_PASSWORD")
+    
+    provided_id = x_admin_id
+    provided_password = x_admin_password
+    
+    # If not provided in custom headers, try standard HTTP Basic auth
+    if (not provided_id or not provided_password) and authorization:
+        if authorization.lower().startswith("basic "):
+            try:
+                encoded_creds = authorization[6:].strip()
+                decoded = base64.b64decode(encoded_creds).decode("utf-8")
+                if ":" in decoded:
+                    provided_id, provided_password = decoded.split(":", 1)
+            except Exception:
+                pass
+                
+    if not provided_id or not provided_password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing administrative credentials"
+        )
+        
+    if provided_id != expected_id or provided_password != expected_password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid administrative ID or password"
+        )
+
+
 @router.post("/upload-csv")
 async def upload_csv(
     file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    _ = Depends(verify_admin_credentials)
 ):
     """
     Upload a CSV file of scholarships, generate embeddings for each, 

@@ -15,6 +15,7 @@ router = APIRouter(prefix="/api/users", tags=["users"])
 
 
 class ProfileUpdate(BaseModel):
+    name: str | None = None
     email: str
     educationLevel: str | None = None
     gender: str | None = None
@@ -53,6 +54,7 @@ async def save_profile(uid: str, profile_data: ProfileUpdate, db: AsyncSession =
     profile = result.scalar_one_or_none()
     
     if profile:
+        profile.name = profile_data.name
         profile.email = profile_data.email
         profile.education_level = profile_data.educationLevel
         profile.gender = profile_data.gender
@@ -64,6 +66,7 @@ async def save_profile(uid: str, profile_data: ProfileUpdate, db: AsyncSession =
     else:
         profile = UserProfileDB(
             uid=uid,
+            name=profile_data.name,
             email=profile_data.email,
             education_level=profile_data.educationLevel,
             gender=profile_data.gender,

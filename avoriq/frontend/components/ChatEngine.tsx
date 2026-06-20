@@ -212,6 +212,26 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
     }
     const newMessage: ChatMessage = { id: Date.now().toString(), sender: "user", text: userQuery };
 
+    // Read file if present
+    let fileBase64: string | null = null;
+    let fileName: string | null = null;
+    let fileType: string | null = null;
+
+    if (selectedFile) {
+      fileName = selectedFile.name;
+      fileType = selectedFile.type;
+      try {
+        fileBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(selectedFile);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
+      } catch (err) {
+        console.error("Failed to read file:", err);
+      }
+    }
+
     // Find the most recent AI message that has results (scholarships) shown
     let activeScholarships: Scholarship[] | null = null;
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -298,7 +318,10 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
             },
           },
           activeScholarships,
-          messages
+          messages,
+          fileBase64,
+          fileName,
+          fileType
         );
       } catch {
         // Network error — fall back to mock
@@ -310,7 +333,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       // ── Fallback to mock matching ──
       fallbackToMock(userQuery);
     }
-  }, [inputValue, isTyping, isLimitReached, isBackendOnline, userProfile, incrementMessageCount, fallbackToMock, messages]);
+  }, [inputValue, selectedFile, isTyping, isLimitReached, isBackendOnline, userProfile, incrementMessageCount, fallbackToMock, messages]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {

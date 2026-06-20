@@ -83,6 +83,9 @@ class ChatRequest(BaseModel):
     stream: bool = Field(default=True)
     active_scholarships: Optional[list[ScholarshipResponse]] = None
     history: Optional[list[ChatMessagePayload]] = None
+    file_base64: Optional[str] = None
+    file_name: Optional[str] = None
+    file_type: Optional[str] = None
 
 
 class ChatResponse(BaseModel):

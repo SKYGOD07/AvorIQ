@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuth } from "./AuthContext";
 import { fetchChatHistory, syncChatHistory, clearChatHistory } from "../lib/api";
 import { Scholarship } from "../types/scholarship";
@@ -168,7 +168,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeThreadId, user, loading]);
 
-  const createThread = () => {
+  const createThread = useCallback(() => {
     const newId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newThread: ChatThread = {
       id: newId,
@@ -179,9 +179,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setThreads((prev) => [newThread, ...prev]);
     setActiveThreadId(newId);
     return newId;
-  };
+  }, []);
 
-  const deleteThread = async (id: string) => {
+  const deleteThread = useCallback(async (id: string) => {
     // If logged in, clear in PostgreSQL database
     if (user) {
       try {
@@ -212,9 +212,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       
       return filtered;
     });
-  };
+  }, [user, activeThreadId]);
 
-  const clearAllThreads = async () => {
+  const clearAllThreads = useCallback(async () => {
     if (user) {
       try {
         await clearChatHistory(user.uid);
@@ -230,9 +230,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     };
     setThreads([defaultThread]);
     setActiveThreadId("default");
-  };
+  }, [user]);
 
-  const updateThreadMessages = (id: string, newMessages: ChatMessage[]) => {
+  const updateThreadMessages = useCallback((id: string, newMessages: ChatMessage[]) => {
     setThreads((prev) => {
       const updated = prev.map((t) => {
         if (t.id === id) {
@@ -258,7 +258,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const toSync = newMessages.filter((m) => !m.isStreaming);
       syncChatHistory(user.uid, toSync, id);
     }
-  };
+  }, [user]);
 
   return (
     <ChatContext.Provider

@@ -7,6 +7,9 @@ Uses pgvector semantic search + Gemma 3 4B via Ollama.
 import json
 import logging
 import re
+import base64
+import io
+from pypdf import PdfReader
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -335,8 +338,50 @@ async def chat(
             show_cards = True
             cards_to_show = scholarships
 
+    # Process attached file if present
+    pdf_text = ""
+    is_image = False
+    b64_content = None
+
+    if request.file_base64:
+        try:
+            # Strip base64 prefix if present
+            b64_data = request.file_base64
+            if "," in b64_data:
+                b64_data = b64_data.split(",", 1)[1]
+            
+            file_bytes = base64.b64decode(b64_data)
+            
+            # Determine if PDF or image
+            is_pdf = False
+            if request.file_type:
+                is_pdf = "pdf" in request.file_type.lower()
+            elif request.file_name:
+                is_pdf = request.file_name.lower().endswith(".pdf")
+                
+            if is_pdf:
+                # Extract text using pypdf
+                pdf_reader = PdfReader(io.BytesIO(file_bytes))
+                extracted_pages = []
+                for page in pdf_reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        extracted_pages.append(text)
+                pdf_text = "\n".join(extracted_pages)
+                logger.info(f"Extracted {len(pdf_text)} characters from uploaded PDF: {request.file_name}")
+            else:
+                # Assume image (supported natively by Gemma 3 multimodal vision)
+                is_image = True
+                b64_content = b64_data
+                logger.info(f"Received uploaded image: {request.file_name} for multimodal vision processing")
+        except Exception as e:
+            logger.error(f"Error processing attached file: {e}")
+            pdf_text = f"[Error reading attached file: {e}]"
+
     # Step 3: Build RAG context using the filtered list
     context = _build_context(filtered_scholarships, profile_dict)
+    if pdf_text:
+        context += f"\n\n--- ADDITIONAL CONTEXT FROM ATTACHED PDF DOCUMENT ({request.file_name or 'Uploaded File'}) ---\n{pdf_text}\n--- END OF ATTACHED PDF DOCUMENT ---"
 
     # Step 4: Construct messages for Ollama
     intent_hint = ""
@@ -344,6 +389,9 @@ async def chat(
         intent_hint = "\n\nNote: The student is asking about SPECIFIC DETAILS of a scholarship. Answer their specific question directly without listing all scholarships."
     elif intent == "greeting":
         intent_hint = "\n\nNote: The student is greeting you. Respond warmly and offer to help them find scholarships."
+
+    if request.file_base64:
+        intent_hint += "\n\nNote: The student has attached a file. You are operating in HYBRID RAG mode: you should analyze and answer questions about the attached document/image contents alongside any database scholarships."
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT + intent_hint},
@@ -354,7 +402,11 @@ async def chat(
             role = "assistant" if msg.role in ("ai", "assistant") else "user"
             messages.append({"role": role, "content": msg.content})
 
-    messages.append({"role": "user", "content": f"CONTEXT:\n{context}\n\nSTUDENT QUESTION: {request.message}"})
+    user_message = {"role": "user", "content": f"CONTEXT:\n{context}\n\nSTUDENT QUESTION: {request.message}"}
+    if is_image and b64_content:
+        user_message["images"] = [b64_content]
+
+    messages.append(user_message)
 
     # Step 5: Generate response
     if request.stream:

@@ -80,7 +80,6 @@ export interface ChatStreamCallbacks {
   onDone: () => void;
   onError: (error: string) => void;
 }
-
 export async function sendChatMessage(
   message: string,
   profile: {
@@ -92,7 +91,10 @@ export async function sendChatMessage(
   } | null,
   callbacks: ChatStreamCallbacks,
   activeScholarships?: Scholarship[] | null,
-  history?: any[] | null
+  history?: any[] | null,
+  fileBase64?: string | null,
+  fileName?: string | null,
+  fileType?: string | null
 ): Promise<void> {
   try {
     const body: Record<string, unknown> = {
@@ -121,6 +123,12 @@ export async function sendChatMessage(
         role: h.sender === "user" ? "user" : "assistant",
         content: h.text,
       }));
+    }
+
+    if (fileBase64) {
+      body.file_base64 = fileBase64;
+      body.file_name = fileName || null;
+      body.file_type = fileType || null;
     }
 
     const res = await fetch(`${API_BASE}/api/chat`, {

@@ -72,11 +72,17 @@ class StudentProfileSchema(BaseModel):
 # ── Chat Schemas ──
 
 
+class ChatMessagePayload(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=2000)
     profile: Optional[StudentProfileSchema] = None
     stream: bool = Field(default=True)
     active_scholarships: Optional[list[ScholarshipResponse]] = None
+    history: Optional[list[ChatMessagePayload]] = None
 
 
 class ChatResponse(BaseModel):

@@ -10,6 +10,7 @@ export default function QuestionnairePage() {
   const { completeQuestionnaire, userProfile } = useAuth();
   
   const [step, setStep] = useState(1);
+  const [name, setName] = useState("");
   const [education, setEducation] = useState("");
   const [gender, setGender] = useState("");
   const [collegeName, setCollegeName] = useState("");
@@ -25,7 +26,7 @@ export default function QuestionnairePage() {
     "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", 
     "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
     "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", 
-    "Delhi", "Jammu and Kashmir", "Ladakh", "Puducherry", "All India"
+    "Delhi", "Jammu and Kashmir", "Ladakh", "Puducherry", "All Regions", "Other / Global"
   ];
 
   const isCollegeStudent = education === "UG" || education === "PG";
@@ -33,6 +34,7 @@ export default function QuestionnairePage() {
   // Pre-populate input values if the user has an existing profile (Edit Mode)
   useEffect(() => {
     if (userProfile) {
+      setName(userProfile.name || "");
       setEducation(userProfile.educationLevel || "");
       setGender(userProfile.gender || "");
       setCollegeName(userProfile.collegeName || "");
@@ -46,6 +48,10 @@ export default function QuestionnairePage() {
   const handleNext = () => {
     setError(null);
     if (step === 1) {
+      if (!name.trim()) {
+        setError("Please enter your full name.");
+        return;
+      }
       if (!education) {
         setError("Please select your academic level.");
         return;
@@ -70,8 +76,12 @@ export default function QuestionnairePage() {
         setError("Please enter a valid annual family income (minimum 0).");
         return;
       }
+      if (Number(familyIncome) > 0 && Number(familyIncome) < 1000) {
+        setError("Please enter your full annual income in Rupees (e.g. 250000 instead of 2.5 or 25).");
+        return;
+      }
       if (!state) {
-        setError("Please select your state of domicile.");
+        setError("Please select your region / state of domicile.");
         return;
       }
       setStep(3);
@@ -88,6 +98,7 @@ export default function QuestionnairePage() {
 
     try {
       const profileData = {
+        name: name.trim(),
         educationLevel: education,
         gender,
         familyIncomeMax: Number(familyIncome),
@@ -147,17 +158,30 @@ export default function QuestionnairePage() {
             {/* Step 1: Academic & Gender */}
             {step === 1 && (
               <div className="space-y-6">
+                {/* Full Name */}
+                <div className="space-y-3">
+                  <label className="text-foreground text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                    Your Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="ENTER YOUR FULL NAME"
+                    className="w-full px-4 py-3.5 bg-surface-2 border-2 border-[#333] text-foreground text-sm font-bold uppercase tracking-wider focus:border-bauhaus-red focus:shadow-[3px_3px_0px_0px_#D92A2A] transition-all outline-none placeholder:text-slate-600"
+                  />
+                </div>
+
                 {/* Academic Level */}
                 <div className="space-y-3">
                   <label className="text-foreground text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
                     <School className="w-4 h-4 text-bauhaus-red" />
                     Academic / Education Level
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {[
-                      { value: "Class 6–10", label: "Class 6 to 10" },
-                      { value: "Class 11–12", label: "Class 11 & 12 (PUC)" },
-                      { value: "Diploma", label: "Diploma Program" },
+                      { value: "High School", label: "High School" },
                       { value: "UG", label: "Undergraduate (UG)" },
                       { value: "PG", label: "Postgraduate (PG)" }
                     ].map((opt) => (
@@ -168,7 +192,7 @@ export default function QuestionnairePage() {
                           setEducation(opt.value);
                           setError(null);
                         }}
-                        className={`p-3.5 text-left border-2 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                        className={`p-3.5 text-center border-2 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                           education === opt.value
                             ? "bg-bauhaus-red/10 border-bauhaus-red text-bauhaus-red brutal-shadow-sm"
                             : "bg-surface-2 border-[#333] text-slate-400 hover:border-foreground hover:text-foreground"
@@ -267,18 +291,18 @@ export default function QuestionnairePage() {
                   </span>
                 </div>
 
-                {/* State of Domicile */}
+                {/* Region / State of Domicile */}
                 <div className="space-y-2">
                   <label className="text-foreground text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
                     <MapPin className="w-4 h-4 text-bauhaus-red" />
-                    State of Domicile
+                    Region / State of Domicile
                   </label>
                   <select
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     className="w-full px-4 py-3.5 bg-surface-2 border-2 border-[#333] text-foreground text-xs font-black uppercase tracking-widest focus:border-bauhaus-red transition-all outline-none"
                   >
-                    <option value="">Select State</option>
+                    <option value="">Select Region / State</option>
                     {indianStates.map((st) => (
                       <option key={st} value={st}>{st.toUpperCase()}</option>
                     ))}

@@ -22,7 +22,7 @@ export default function ComingSoonPage() {
     { title: "AI Study Planner", description: "Custom adaptive study roadmaps based on your target syllabus.", iconName: "Calendar" as const, phase: "Phase 2" },
     { title: "Exam Prep Assistant", description: "Mock papers, instant grading, and performance metrics.", iconName: "Award" as const, phase: "Phase 2" },
     { title: "YouTube Companion", description: "Curated noise-free learning from verified channels.", iconName: "Play" as const, phase: "Phase 3" },
-    { title: "Career Navigator", description: "Pathways from Class 6 to Graduation with skills mapping.", iconName: "Compass" as const, phase: "Phase 3" },
+    { title: "Career Navigator", description: "Pathways from High School to Postgraduate with skills mapping.", iconName: "Compass" as const, phase: "Phase 3" },
     { title: "WhatsApp Assistant", description: "Queries, alerts, and guidance directly via WhatsApp.", iconName: "MessageSquare" as const, phase: "Phase 2" },
     { title: "Community Forums", description: "Connect with peers and alumni in moderated forums.", iconName: "Users" as const, phase: "Phase 4" },
     { title: "Parent Dashboard", description: "Monitor milestones and application progress.", iconName: "LineChart" as const, phase: "Phase 4" },

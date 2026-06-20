@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { AuthProvider } from "../context/AuthContext";
+import { ChatProvider } from "../context/ChatContext";
 import { RouteGuard } from "../components/RouteGuard";
 import "./globals.css";
 
@@ -34,18 +35,33 @@ export default function RootLayout({
     <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
       <body className={`${inter.variable} min-h-screen flex flex-col bg-background text-foreground antialiased relative font-sans`}>
         <AuthProvider>
-          <RouteGuard>
-            {/* Subtle grid background */}
-            <div className="mesh-bg" />
-            
-            <Navbar />
+          <ChatProvider>
+            <RouteGuard>
+              {/* ── Rich Background Layers ── */}
+              <div className="mesh-bg" />
+              <div className="vignette-bg" />
+              <div className="noise-bg" />
+              
+              {/* Floating geometric parallax shapes */}
+              <div className="parallax-shapes">
+                <div className="shape shape-1" />
+                <div className="shape shape-2" />
+                <div className="shape shape-3" />
+                <div className="shape shape-4" />
+                <div className="shape shape-5" />
+                <div className="glow-orb-red" />
+                <div className="glow-orb-yellow" />
+              </div>
+              
+              <Navbar />
 
-            <main className="flex-1 flex flex-col justify-start relative z-10">
-              {children}
-            </main>
+              <main className="flex-1 flex flex-col justify-start relative">
+                {children}
+              </main>
 
-            <Footer />
-          </RouteGuard>
+              <Footer />
+            </RouteGuard>
+          </ChatProvider>
         </AuthProvider>
       </body>
     </html>

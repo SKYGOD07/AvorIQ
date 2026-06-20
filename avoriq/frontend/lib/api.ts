@@ -115,7 +115,7 @@ export async function sendChatMessage(
     }
 
     if (history) {
-      // Filter out welcome message (id === "1") and limit to last 10 messages
+      // Filter out welcome message (id === "1") and only take last 10 messages for LLM context
       const filtered = history.filter((h) => h.id !== "1" && !h.isStreaming).slice(-10);
       body.history = filtered.map((h) => ({
         role: h.sender === "user" ? "user" : "assistant",
@@ -283,10 +283,7 @@ export async function syncChatHistory(uid: string, messages: any[], chatId: stri
         results: m.results || [],
       }));
 
-    const url = new URL(`${API_BASE}/api/users/${uid}/chat`);
-    url.searchParams.set("chatId", chatId);
-
-    const res = await fetch(url.toString(), {
+    const res = await fetch(`${API_BASE}/api/users/${uid}/chat?chatId=${chatId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: sanitized }),
@@ -299,11 +296,10 @@ export async function syncChatHistory(uid: string, messages: any[], chatId: stri
 
 export async function clearChatHistory(uid: string, chatId?: string): Promise<boolean> {
   try {
-    const url = new URL(`${API_BASE}/api/users/${uid}/chat`);
-    if (chatId) {
-      url.searchParams.set("chatId", chatId);
-    }
-    const res = await fetch(url.toString(), {
+    const url = chatId 
+      ? `${API_BASE}/api/users/${uid}/chat?chatId=${chatId}`
+      : `${API_BASE}/api/users/${uid}/chat`;
+    const res = await fetch(url, {
       method: "DELETE",
     });
     return res.ok;

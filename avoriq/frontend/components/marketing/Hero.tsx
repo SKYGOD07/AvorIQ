@@ -9,7 +9,7 @@ import CountUp from "../reactbits/CountUp";
 const stats = [
   { value: 1000, suffix: "+", label: "Scholarships", icon: Award },
   { value: 50, suffix: "+", label: "Categories", icon: Layers },
-  { value: 6, suffix: "–PG", label: "Class Levels", icon: Users },
+  { value: 3, suffix: " levels", label: "HS / UG / PG", icon: Users },
   { value: 24, suffix: "×7", label: "AI Support", icon: Clock },
 ];
 
@@ -30,7 +30,7 @@ export default function Hero() {
               Version 1.0 — Scholarship Intelligence
             </span>
           </motion.div>
-
+ 
           {/* Headline */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             <h1 className="text-foreground font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl uppercase leading-[0.9] tracking-tight mt-8">
@@ -43,15 +43,15 @@ export default function Hero() {
               MEANT FOR YOU.
             </h1>
           </motion.div>
-
+ 
           {/* Divider */}
           <div className="w-full h-[3px] bg-foreground my-8" />
-
+ 
           {/* Subheadline */}
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
             className="text-slate-400 text-lg sm:text-xl leading-relaxed max-w-3xl mb-10"
           >
-            AvorIQ helps Indian students discover scholarships they actually qualify for before deadlines pass.
+            AvorIQ helps students discover scholarships they actually qualify for before deadlines pass.
           </motion.p>
 
           {/* CTAs */}

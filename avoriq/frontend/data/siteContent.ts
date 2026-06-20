@@ -58,7 +58,7 @@ export const siteContent = {
       { title: "Intelligence", desc: "Powered by advanced models for deep analysis." },
       { title: "Personalization", desc: "Responses tailored specifically to your profile." },
       { title: "Efficiency", desc: "Save hundreds of hours in manual research." },
-      { title: "Global Scale", desc: "Designed for students everywhere, starting with India." }
+      { title: "Global Scale", desc: "Designed for students everywhere around the world." }
     ]
   },
   comingSoon: {
@@ -88,7 +88,7 @@ export const siteContent = {
     description: "Adaptive Vision for Opportunity and Resources Intelligence Quotient.",
     slogan: "\"Intelligence for all.\"",
     email: "hello@avoriq.ai",
-    location: "Global Presence. Built in India.",
+    location: "Global Presence. Built for students everywhere.",
     newsletterTitle: "Stay Updated",
     newsletterDesc: "Get the latest on AI features and educational opportunities delivered to your inbox.",
   }

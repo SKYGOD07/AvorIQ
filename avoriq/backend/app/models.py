@@ -72,6 +72,7 @@ class UserProfileDB(Base):
     __tablename__ = "user_profiles"
 
     uid = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=True)
     email = Column(String, nullable=False)
     education_level = Column(String, nullable=True)
     gender = Column(String, nullable=True)
@@ -83,6 +84,7 @@ class UserProfileDB(Base):
 
     def to_dict(self):
         return {
+            "name": self.name,
             "educationLevel": self.education_level,
             "gender": self.gender,
             "familyIncomeMax": self.family_income_max,
@@ -98,6 +100,7 @@ class ChatMessageDB(Base):
 
     id = Column(String, primary_key=True, index=True)
     uid = Column(String, index=True, nullable=False)
+    chat_id = Column(String, index=True, nullable=False, default="default")
     sender = Column(String, nullable=False)  # "user" | "ai"
     text = Column(Text, nullable=False)
     created_at = Column(Float, nullable=False)  # timestamp for ordering
@@ -106,6 +109,7 @@ class ChatMessageDB(Base):
     def to_dict(self):
         return {
             "id": self.id,
+            "chatId": self.chat_id,
             "sender": self.sender,
             "text": self.text,
             "results": self.results or [],

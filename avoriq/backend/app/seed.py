@@ -1,11 +1,13 @@
 """
 AvorIQ Backend — Data Seeder
-Seeds the 20 scholarships from the frontend mock data into PostgreSQL with vector embeddings.
+Seeds the scholarships from the frontend mock data into PostgreSQL with vector embeddings.
 Idempotent — skips if data already exists.
 """
 
 import asyncio
 import logging
+import json
+import os
 from sqlalchemy import select, func, text
 from app.database import async_session, init_db, engine, Base
 from app.models import ScholarshipDB
@@ -14,8 +16,20 @@ from app.services.tei_service import ensure_tei_ready, EMBEDDING_DIM
 
 logger = logging.getLogger(__name__)
 
-# ── All 20 scholarships from frontend/data/scholarships.ts ──
-SCHOLARSHIPS = [
+# Load scholarships dynamically from scholarships.json if available
+json_path = os.path.join(os.path.dirname(__file__), "scholarships.json")
+SCHOLARSHIPS = []
+if os.path.exists(json_path):
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            SCHOLARSHIPS = json.load(f)
+        logger.info(f"Loaded {len(SCHOLARSHIPS)} scholarships from scholarships.json for seeding.")
+    except Exception as e:
+        logger.error(f"Failed to load scholarships.json: {e}. Falling back to default list.")
+
+if not SCHOLARSHIPS:
+    # ── Fallback fallback: All 20 scholarships from frontend/data/scholarships.ts ──
+    SCHOLARSHIPS = [
     {
         "id": "gov-nmms",
         "name": "National Means-cum-Merit Scholarship (NMMS)",
@@ -583,12 +597,15 @@ async def seed_scholarships(force_reseed: bool = False):
         result = await session.execute(select(func.count()).select_from(ScholarshipDB))
         count = result.scalar()
 
-        if not force_reseed and count and count >= len(SCHOLARSHIPS):
-            logger.info(f"Database already has {count} scholarships. Skipping seed.")
+        # If count doesn't match len(SCHOLARSHIPS), we force clear and re-seed to avoid unique/primary key conflicts
+        need_reseed = force_reseed or (count and count != len(SCHOLARSHIPS))
+
+        if not need_reseed and count and count == len(SCHOLARSHIPS):
+            logger.info(f"Database already has all {count} scholarships. Skipping seed.")
             return
 
-        if force_reseed and count and count > 0:
-            logger.info(f"Force reseed: deleting {count} existing scholarships...")
+        if need_reseed and count and count > 0:
+            logger.info(f"Reseeding: clearing {count} existing scholarships to prevent duplicates...")
             from sqlalchemy import delete
             await session.execute(delete(ScholarshipDB))
             await session.commit()

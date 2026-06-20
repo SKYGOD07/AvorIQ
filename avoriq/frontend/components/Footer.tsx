@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Mail, Code, Briefcase, Globe, Heart } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { siteContent } from "../data/siteContent";
@@ -14,15 +13,22 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-background border-t-3 border-foreground pt-16 pb-8 relative z-10">
+    <footer className="bg-background border-t border-foreground/10 pt-16 pb-8 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Logo & Info */}
           <div className="space-y-4 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 border-2 border-foreground flex items-center justify-center bg-bauhaus-red">
-                <Image src="/logo.svg" alt="AvorIQ" width={20} height={20} className="invert" />
-              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 64 64"
+                className="w-8 h-8 shrink-0"
+              >
+                <polygon points="32,6 6,58 22,58 28,44 36,44 42,58 58,58" fill="#D92A2A"/>
+                <polygon points="32,22 26,40 38,40" fill="#0A0A0A"/>
+                <circle cx="50" cy="14" r="10" fill="#EAB308"/>
+                <circle cx="50" cy="14" r="4" fill="#0A0A0A"/>
+              </svg>
               <span className="font-black text-lg uppercase tracking-wider text-foreground">
                 AVOR<span className="text-bauhaus-red">IQ</span>
               </span>
@@ -93,7 +99,7 @@ export default function Footer() {
         <div className="pt-8 border-t-2 border-[#333] flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-600 text-xs font-bold uppercase tracking-wider">
             &copy; {new Date().getFullYear()} AVORIQ. ALL RIGHTS RESERVED. MADE WITH{" "}
-            <Heart className="w-3.5 h-3.5 inline-block text-bauhaus-red fill-bauhaus-red mx-0.5" /> FOR INDIAN STUDENTS.
+            <Heart className="w-3.5 h-3.5 inline-block text-bauhaus-red fill-bauhaus-red mx-0.5" /> FOR ALL STUDENTS.
           </p>
           <div className="flex space-x-6">
             <a href="#" className="text-slate-600 hover:text-foreground text-xs font-bold uppercase tracking-wider transition-colors">

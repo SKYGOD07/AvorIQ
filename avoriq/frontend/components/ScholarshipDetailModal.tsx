@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Scholarship } from "../types/scholarship";
 import { X, Calendar, Banknote, ShieldAlert, Award, FileText, CheckCircle2, Bookmark, BookmarkCheck, ExternalLink, Sparkles, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +24,17 @@ export default function ScholarshipDetailModal({
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleApply = () => {
@@ -44,14 +55,14 @@ export default function ScholarshipDetailModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/90"
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         />
 
         {/* Modal */}
@@ -60,7 +71,7 @@ export default function ScholarshipDetailModal({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.15 }}
-          className="relative w-full max-w-3xl h-[85vh] bg-surface border-2 border-foreground brutal-shadow-lg flex flex-col overflow-hidden z-10"
+          className="relative w-full max-w-3xl max-h-[85vh] bg-surface border-2 border-foreground brutal-shadow-lg flex flex-col overflow-hidden z-10"
         >
           {/* Header */}
           <div className="p-6 border-b-2 border-[#333] flex items-start justify-between">

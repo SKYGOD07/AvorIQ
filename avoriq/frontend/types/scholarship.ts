@@ -29,7 +29,7 @@ export interface Scholarship {
 
 export interface StudentProfile {
   name: string;
-  educationLevel: string; // "Class 6–10" | "Class 11–12" | "Diploma" | "UG" | "PG"
+  educationLevel: string; // "High School" | "UG" | "PG"
   gender: string; // "Male" | "Female" | "Other"
   familyIncome: number; // Numeric income (derived from selections: e.g. below 1L = 100000)
   familyIncomeCategory: string; // "Below ₹1 Lakh" | "₹1–2.5 Lakhs" | "₹2.5–5 Lakhs" | "₹5–8 Lakhs" | "Above ₹8 Lakhs"

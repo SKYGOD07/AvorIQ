@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { LogIn, Send, Loader2, Zap, Wifi, WifiOff, Trash2 } from "lucide-react";
+import { LogIn, Send, Loader2, Zap, Wifi, WifiOff, Trash2, Paperclip } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Scholarship } from "../types/scholarship";
@@ -12,13 +12,8 @@ import { sendChatMessage, checkBackendHealth } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useChat } from "../context/ChatContext";
 
-export interface ChatMessage {
-  id: string;
-  sender: "user" | "ai";
-  text: string;
-  results?: Scholarship[];
-  isStreaming?: boolean;
-}
+
+export type { ChatMessage };
 
 interface ChatEngineProps {
   onOpenDetails: (scholarship: Scholarship) => void;
@@ -31,12 +26,34 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
   const { userProfile, user } = useAuth();
   const { threads, activeThreadId, updateThreadMessages } = useChat();
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
-  
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loadedThreadId, setLoadedThreadId] = useState<string | null>(null);
+
+  const activeThread = threads.find((t) => t.id === activeThreadId);
+  const rawMessages = activeThread?.messages || [];
+
+  const messages = rawMessages.length > 0
+    ? rawMessages
+    : [
+        {
+          id: "1",
+          sender: "ai" as const,
+          text: isBackendOnline
+            ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
+            : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
+        },
+      ];
+
+  const setMessages = useCallback(
+    (updater: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+      const nextMessages = typeof updater === "function" ? updater(rawMessages) : updater;
+      updateThreadMessages(activeThreadId, nextMessages);
+    },
+    [activeThreadId, rawMessages, updateThreadMessages]
+  );
 
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,33 +63,6 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       setIsBackendOnline(online);
     });
   }, []);
-
-  // Load messages when activeThreadId changes or when threads finish loading
-  useEffect(() => {
-    const activeThread = threads.find((t) => t.id === activeThreadId);
-    if (activeThread && activeThreadId !== loadedThreadId) {
-      const initialText = isBackendOnline
-        ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
-        : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.";
-
-      if (activeThread.messages.length > 0) {
-        setMessages(activeThread.messages);
-      } else {
-        setMessages([{ id: "1", sender: "ai", text: initialText }]);
-      }
-      setLoadedThreadId(activeThreadId);
-    }
-  }, [activeThreadId, threads, loadedThreadId, isBackendOnline]);
-
-  // Sync to context when local messages update
-  useEffect(() => {
-    if (loadedThreadId === activeThreadId && messages.length > 0) {
-      const isCurrentlyStreaming = messages.some((m) => m.isStreaming);
-      if (!isCurrentlyStreaming) {
-        updateThreadMessages(activeThreadId, messages);
-      }
-    }
-  }, [messages, activeThreadId, loadedThreadId, updateThreadMessages]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -206,10 +196,13 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
 
   // ── Handle sending (AI backend or fallback) ──
   const handleSend = useCallback(async () => {
-    if (!inputValue.trim() || isTyping) return;
+    if ((!inputValue.trim() && !selectedFile) || isTyping) return;
     if (isLimitReached) return;
 
-    const userQuery = inputValue;
+    let userQuery = inputValue;
+    if (selectedFile) {
+      userQuery += `\n[Attached File: ${selectedFile.name}]`;
+    }
     const newMessage: ChatMessage = { id: Date.now().toString(), sender: "user", text: userQuery };
 
     // Find the most recent AI message that has results (scholarships) shown
@@ -223,6 +216,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
 
     setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
+    setSelectedFile(null); // Clear selected file after sending
     setIsTyping(true);
     incrementMessageCount();
 
@@ -323,19 +317,11 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       {/* Top Bar with Status and Actions */}
       <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
         {/* Reset Chat Button */}
-        {messages.length > 1 && (
+        {rawMessages.length > 0 && (
           <button
             onClick={() => {
               if (confirm("Are you sure you want to clear the chat history?")) {
-                const initialMsg: ChatMessage = {
-                  id: "1",
-                  sender: "ai",
-                  text: isBackendOnline
-                    ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
-                    : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
-                };
-                setMessages([initialMsg]);
-                updateThreadMessages(activeThreadId, []);
+                setMessages([]);
               }
             }}
             className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border border-bauhaus-red/30 text-bauhaus-red hover:bg-bauhaus-red hover:text-white transition-all cursor-pointer bg-background"
@@ -456,22 +442,56 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
       {/* Input */}
       <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-background via-background to-transparent">
         <div className="max-w-3xl mx-auto relative">
+          
+          {/* File Preview Badge */}
+          {selectedFile && (
+            <div className="absolute top-[-38px] left-0 right-0 px-4 py-2 bg-surface border-t-2 border-x-2 border-[#333] flex items-center justify-between text-xs font-mono text-slate-400">
+              <span className="truncate">📎 {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)</span>
+              <button
+                type="button"
+                onClick={() => setSelectedFile(null)}
+                className="text-bauhaus-red hover:text-foreground font-black ml-2 uppercase cursor-pointer"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
           <div className="relative flex items-center bg-surface border-2 border-[#333] focus-within:border-bauhaus-red focus-within:shadow-[3px_3px_0px_0px_#D92A2A] transition-all">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              className="hidden"
+            />
+            
             <textarea
               ref={textareaRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={isBackendOnline ? "// ASK ME ABOUT SCHOLARSHIPS..." : "// TYPE YOUR QUERY..."}
-              className="w-full max-h-40 min-h-[56px] py-4 pl-5 pr-16 bg-transparent text-foreground text-sm font-mono focus:outline-none resize-none scrollbar-hide placeholder:text-slate-600 placeholder:uppercase"
+              className="w-full max-h-40 min-h-[56px] py-4 pl-5 pr-24 bg-transparent text-foreground text-sm font-mono focus:outline-none resize-none scrollbar-hide placeholder:text-slate-600 placeholder:uppercase"
               rows={1}
             />
+
+            {/* Paperclip Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute right-12 p-2.5 text-slate-500 hover:text-foreground transition-all cursor-pointer"
+              title="Upload File"
+            >
+              <Paperclip className="w-5 h-5" />
+            </button>
+
+            {/* Send Button */}
             <button
               onClick={handleSend}
-              disabled={!inputValue.trim() || isTyping || isLimitReached}
+              disabled={(!inputValue.trim() && !selectedFile) || isTyping || isLimitReached}
               className={`absolute right-2 p-2.5 transition-all ${
-                inputValue.trim() && !isTyping && !isLimitReached
-                  ? "bg-bauhaus-red text-white"
+                (inputValue.trim() || selectedFile) && !isTyping && !isLimitReached
+                  ? "bg-bauhaus-red text-white cursor-pointer"
                   : "bg-surface-2 text-slate-600"
               }`}
             >

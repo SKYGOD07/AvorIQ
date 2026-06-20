@@ -45,3 +45,15 @@ async def init_db():
         # Import models so they register with Base.metadata
         from app.models import ScholarshipDB, UserProfileDB, ChatMessageDB  # noqa: F401
         await conn.run_sync(Base.metadata.create_all)
+        
+        # Failsafe migration: Add name column to user_profiles if missing
+        try:
+            await conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS name VARCHAR"))
+        except Exception:
+            pass
+
+        # Failsafe migration: Add chat_id column to chat_messages if missing
+        try:
+            await conn.execute(text("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS chat_id VARCHAR DEFAULT 'default'"))
+        except Exception:
+            pass

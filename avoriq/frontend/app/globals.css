@@ -384,7 +384,22 @@ body {
   box-shadow: 4px 4px 0px 0px #EAB308;
 }
 
-/* ── Mesh Background (Brutalist Grid) ── */
+/* ── Rich Background System ── */
+
+/* Subtle noise texture overlay */
+.noise-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Base mesh grid */
 .mesh-bg {
   position: fixed;
   top: 0;
@@ -392,9 +407,155 @@ body {
   right: 0;
   bottom: 0;
   z-index: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
   pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
+
+/* Subtle radial vignette from center */
+.vignette-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 50% at 50% 30%,
+    rgba(217, 42, 42, 0.04) 0%,
+    transparent 60%
+  ),
+  radial-gradient(
+    ellipse 60% 40% at 80% 60%,
+    rgba(234, 179, 8, 0.03) 0%,
+    transparent 50%
+  ),
+  radial-gradient(
+    ellipse 120% 80% at 50% 100%,
+    rgba(10, 10, 10, 0.8) 0%,
+    transparent 40%
+  );
+}
+
+/* Floating geometric accent shapes (parallax-ready via will-change) */
+@keyframes drift-1 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(15px, -25px) rotate(3deg); }
+  50% { transform: translate(-10px, -40px) rotate(-2deg); }
+  75% { transform: translate(20px, -15px) rotate(4deg); }
+}
+
+@keyframes drift-2 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(-20px, 15px) rotate(-5deg); }
+  66% { transform: translate(10px, 30px) rotate(3deg); }
+}
+
+@keyframes drift-3 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -20px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.15; }
+}
+
+.parallax-shapes {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.parallax-shapes .shape {
+  position: absolute;
+  will-change: transform;
+  opacity: 0.06;
+}
+
+.parallax-shapes .shape-1 {
+  top: 8%;
+  right: 12%;
+  width: 200px;
+  height: 200px;
+  border: 3px solid #D92A2A;
+  animation: drift-1 18s ease-in-out infinite;
+}
+
+.parallax-shapes .shape-2 {
+  top: 55%;
+  left: 5%;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 3px solid #EAB308;
+  animation: drift-2 22s ease-in-out infinite;
+}
+
+.parallax-shapes .shape-3 {
+  bottom: 15%;
+  right: 8%;
+  width: 100px;
+  height: 100px;
+  background: #D92A2A;
+  animation: drift-3 15s ease-in-out infinite;
+  opacity: 0.04;
+}
+
+.parallax-shapes .shape-4 {
+  top: 30%;
+  left: 15%;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #EAB308;
+  animation: drift-1 25s ease-in-out infinite reverse;
+  opacity: 0.03;
+}
+
+.parallax-shapes .shape-5 {
+  top: 70%;
+  right: 30%;
+  width: 250px;
+  height: 250px;
+  border: 2px dashed rgba(240, 240, 240, 0.06);
+  border-radius: 50%;
+  animation: drift-2 30s ease-in-out infinite;
+}
+
+/* Red glow orb (large, diffused) */
+.parallax-shapes .glow-orb-red {
+  top: 15%;
+  left: 40%;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217, 42, 42, 0.12) 0%, transparent 70%);
+  animation: pulse-glow 8s ease-in-out infinite;
+  filter: blur(80px);
+}
+
+/* Yellow glow orb */
+.parallax-shapes .glow-orb-yellow {
+  bottom: 20%;
+  right: 10%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(234, 179, 8, 0.08) 0%, transparent 70%);
+  animation: pulse-glow 10s ease-in-out infinite 3s;
+  filter: blur(60px);
+}
+
+/* Slow spin for decorative accents */
+@keyframes slow-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: slow-spin 40s linear infinite;
+}
+

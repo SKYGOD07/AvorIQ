@@ -29,6 +29,9 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     const isProtectedRoute = 
       pathname?.startsWith("/chat") || 
       pathname?.startsWith("/saved") || 
+      pathname?.startsWith("/about") || 
+      pathname?.startsWith("/coming-soon") || 
+      pathname?.startsWith("/scholarships") || 
       pathname === "/questionnaire";
       
     if (!user && isProtectedRoute) {

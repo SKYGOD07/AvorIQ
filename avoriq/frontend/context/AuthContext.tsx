@@ -96,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(true);
       setUser(currentUser);
       if (currentUser) {
         try {

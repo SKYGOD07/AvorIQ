@@ -61,7 +61,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* ── Logo ── */}
           <Link
-            href={user ? "/scholarships" : "/"}
+            href={user ? "/dashboard" : "/"}
             className="flex items-center gap-3 group"
           >
             {/* SVG logo inline for clarity at any size */}

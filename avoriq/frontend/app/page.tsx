@@ -42,31 +42,31 @@ const stats = [
 const steps = [
   {
     num: "01",
-    title: "Complete Your Profile",
-    desc: "Answer a few quick questions about your academic level, family income, state, and category.",
-    badge: "Setup",
-    highlight: "< 2 minutes",
+    title: "Setup Profile",
+    desc: "Answer rapid profile questions about your academic level, target exams, and category to initialize your workspace.",
+    badge: "Dashboard",
+    highlight: "Instantly Ready",
   },
   {
     num: "02",
-    title: "Get Live Match Scores",
-    desc: "Our AI engine scans 1000+ verified scholarships and calculates your eligibility percentage for each.",
-    badge: "Match",
-    highlight: "99% accuracy",
+    title: "Match & Plan",
+    desc: "Our AI scans 1,000+ scholarships for eligibility, and maps customized study roadmaps tailored to your target syllabus.",
+    badge: "Planner",
+    highlight: "Adaptive Maps",
   },
   {
     num: "03",
-    title: "Track Deadlines",
-    desc: "Bookmark matching scholarships. Receive automated alerts and never miss an application window.",
-    badge: "Track",
-    highlight: "deadline alerts",
+    title: "Learn & Prep",
+    desc: "Simulate real tests using the Exam Assistant with instant grading, and study with distraction-free YouTube companions.",
+    badge: "Prep",
+    highlight: "Mock Papers",
   },
   {
     num: "04",
-    title: "Apply with AI",
-    desc: "Use your AI companion to draft essays, clarify eligibility rules, and translate certificates.",
-    badge: "Copilot",
-    highlight: "drafts & reviews",
+    title: "Chart & Track",
+    desc: "Map career pathways from High School to Postgraduate, track application deadlines, and draft motivation essays with AI.",
+    badge: "Success",
+    highlight: "End-to-End Tracker",
   },
 ];
 
@@ -146,7 +146,7 @@ const educationalModules = [
     badge: "ACTIVE",
     icon: Users,
     active: true,
-    href: "/coming-soon",
+    href: "#",
   },
 ];
 

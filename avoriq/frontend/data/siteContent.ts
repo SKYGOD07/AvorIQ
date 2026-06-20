@@ -3,9 +3,9 @@ import { Compass, MessageSquare, ShieldCheck, Users, Zap } from "lucide-react";
 export const siteContent = {
   navLinks: [
     { name: "Home", href: "/" },
+    { name: "Dashboard", href: "/dashboard" },
     { name: "Scholarships", href: "/scholarships" },
     { name: "About", href: "/about" },
-    { name: "Coming Soon", href: "/coming-soon" },
   ],
   hero: {
     tagline: "Your AI Second Brain",

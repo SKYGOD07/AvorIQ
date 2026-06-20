@@ -30,7 +30,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
       pathname?.startsWith("/chat") || 
       pathname?.startsWith("/saved") || 
       pathname?.startsWith("/about") || 
-      pathname?.startsWith("/coming-soon") || 
+      pathname?.startsWith("/dashboard") || 
       pathname?.startsWith("/scholarships") || 
       pathname === "/questionnaire";
       
@@ -43,8 +43,8 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     // 3. Redirect logged-in users away from / and /login to the app dashboard
     if (user && (pathname === "/" || pathname === "/login")) {
       if (isQuestionnaireCompleted) {
-        console.log("[RouteGuard] Authenticated user on auth/home path, redirecting to /scholarships");
-        router.replace("/scholarships");
+        console.log("[RouteGuard] Authenticated user on auth/home path, redirecting to /dashboard");
+        router.replace("/dashboard");
       } else {
         console.log("[RouteGuard] Authenticated user on auth/home path with incomplete profile, redirecting to /questionnaire");
         router.replace("/questionnaire");

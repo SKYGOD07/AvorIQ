@@ -10,7 +10,8 @@ import ScholarshipCard from "./ScholarshipCard";
 import { useChatLimit } from "../hooks/useChatLimit";
 import { sendChatMessage, checkBackendHealth } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import { useChat, ChatMessage } from "../context/ChatContext";
+import { useChat } from "../context/ChatContext";
+
 
 export type { ChatMessage };
 

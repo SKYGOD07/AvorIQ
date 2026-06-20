@@ -8,7 +8,6 @@ import {
   Award,
   GraduationCap,
   Zap,
-  Search,
   CheckCircle2,
   HelpCircle,
   MessageSquare,

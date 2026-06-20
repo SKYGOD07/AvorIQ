@@ -122,10 +122,11 @@ npm start
 |-------|--------|--------|
 | **V1** | Scholarship Intelligence Platform | ✅ Active |
 | **V1** | AI Study Planner & Exam Prep Assistant | ✅ Active |
-| **V1** | YouTube Learning Companion | ✅ Active |
 | **V1** | Career Navigator | ✅ Active |
 | **V1** | Community Forums | ✅ Active |
-| **V2** | RAG Vector Search Engine | 🔜 Planned |
+
+> [!NOTE]
+> **Calibration & Tuning Phase:** Advanced AI capabilities (such as Large Language Model local fine-tuning and multi-source RAG vector search) require dedicated calibration time. We are running performance testing, prompt alignment, and embedding tuning to guarantee accuracy, prevent hallucinations, and optimize latency before full production release.
 
 ---
 

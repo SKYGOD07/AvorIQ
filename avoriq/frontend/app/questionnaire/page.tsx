@@ -18,9 +18,6 @@ export default function QuestionnairePage() {
   const [familyIncome, setFamilyIncome] = useState("");
   const [state, setState] = useState("");
   const [caste, setCaste] = useState("");
-  const [targetExam, setTargetExam] = useState("");
-  const [careerInterest, setCareerInterest] = useState("");
-  const [enableAutofill, setEnableAutofill] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const indianStates = [
@@ -45,12 +42,6 @@ export default function QuestionnairePage() {
       setFamilyIncome(userProfile.familyIncomeMax ? String(userProfile.familyIncomeMax) : "");
       setState(userProfile.state || "");
       setCaste(userProfile.caste || "");
-      
-      const uid = userProfile.uid || 'guest';
-      setTargetExam(userProfile.targetExam || window.localStorage.getItem(`avoriq_targetExam_${uid}`) || "");
-      setCareerInterest(userProfile.careerInterest || window.localStorage.getItem(`avoriq_careerInterest_${uid}`) || "");
-      const storedAutofill = window.localStorage.getItem(`avoriq_enableAutofill_${uid}`);
-      setEnableAutofill(storedAutofill !== null ? storedAutofill === "true" : true);
     }
   }, [userProfile]);
 
@@ -90,24 +81,14 @@ export default function QuestionnairePage() {
         return;
       }
       setStep(3);
-    } else if (step === 3) {
-      if (!caste) {
-        setError("Please select your caste/category.");
-        return;
-      }
-      setStep(4);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!targetExam) {
-      setError("Please select a target exam or study goal.");
-      return;
-    }
-    if (!careerInterest) {
-      setError("Please select your preferred career direction.");
+    if (!caste) {
+      setError("Please select your caste/category.");
       return;
     }
 
@@ -119,17 +100,9 @@ export default function QuestionnairePage() {
         familyIncomeMax: Number(familyIncome),
         state,
         caste,
-        targetExam,
-        careerInterest,
-        enableAutofill,
         ...(isCollegeStudent ? { collegeName: collegeName.toUpperCase(), enrollmentNumber: enrollmentNumber.toUpperCase() } : {}),
       };
       
-      const uid = userProfile?.uid || 'guest';
-      window.localStorage.setItem(`avoriq_targetExam_${uid}`, targetExam);
-      window.localStorage.setItem(`avoriq_careerInterest_${uid}`, careerInterest);
-      window.localStorage.setItem(`avoriq_enableAutofill_${uid}`, String(enableAutofill));
-
       await completeQuestionnaire(profileData);
       router.push("/dashboard");
     } catch (err: any) {
@@ -147,14 +120,14 @@ export default function QuestionnairePage() {
           <div className="w-full bg-surface-2 border-2 border-foreground h-4 mb-8 relative">
             <div 
               className="bg-bauhaus-red h-full border-r-2 border-foreground transition-all duration-300"
-              style={{ width: `${(step / 4) * 100}%` }}
+              style={{ width: `${(step / 3) * 100}%` }}
             />
           </div>
 
           {/* Step Counter */}
           <div className="flex items-center justify-between mb-6 text-[10px] font-black uppercase tracking-widest text-slate-500">
             <span>Profile Setup</span>
-            <span className="text-bauhaus-red">Step {step} of 4</span>
+            <span className="text-bauhaus-red">Step {step} of 3</span>
           </div>
 
           {/* Title Header */}
@@ -367,101 +340,6 @@ export default function QuestionnairePage() {
               </div>
             )}
 
-            {/* Step 4: AI Study Planner, Exam Assist, Career Navigator & Application Autofill Tracker */}
-            {step === 4 && (
-              <div className="space-y-6">
-                {/* Target Exam / Study Goal */}
-                <div className="space-y-3">
-                  <label className="text-foreground text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                    Target Exam / Goal (For Planner & Exam Assist)
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      "JEE Main / Advanced",
-                      "NEET / Medical",
-                      "GATE / Tech Exam",
-                      "UPSC / Civil Services",
-                      "CAT / MBA Prep",
-                      "General Academics"
-                    ].map((exam) => (
-                      <button
-                        key={exam}
-                        type="button"
-                        onClick={() => setTargetExam(exam)}
-                        className={`p-3 text-center border-2 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                          targetExam === exam
-                            ? "bg-bauhaus-red/10 border-bauhaus-red text-bauhaus-red brutal-shadow-sm"
-                            : "bg-surface-2 border-[#333] text-slate-400 hover:border-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {exam}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Career Interest */}
-                <div className="space-y-3">
-                  <label className="text-foreground text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                    Preferred Career Direction (For Career Navigator)
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      "Engineering & IT",
-                      "Medicine & Biotech",
-                      "Civil Services",
-                      "Business & Management",
-                      "Science & Research",
-                      "Arts & Public Service"
-                    ].map((career) => (
-                      <button
-                        key={career}
-                        type="button"
-                        onClick={() => setCareerInterest(career)}
-                        className={`p-3 text-center border-2 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                          careerInterest === career
-                            ? "bg-bauhaus-red/10 border-bauhaus-red text-bauhaus-red brutal-shadow-sm"
-                            : "bg-surface-2 border-[#333] text-slate-400 hover:border-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {career}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* AI Auto-Fill & Tracker Option */}
-                <div className="space-y-3 pt-4 border-t-2 border-[#333]">
-                  <label className="text-foreground text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                    AI Auto-Fill & Application Tracker
-                  </label>
-                  <p className="text-slate-500 text-[10px] uppercase font-bold leading-normal mb-2">
-                    Allow AvorIQ AI to securely autofill your profile fields into matched scholarship portals via the tracker.
-                  </p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {[
-                      { value: true, label: "Enable Secure AI Form Autofill & Tracker (Recommended)" },
-                      { value: false, label: "Manual Application (Deadline Tracking Only)" }
-                    ].map((opt) => (
-                      <button
-                        key={String(opt.value)}
-                        type="button"
-                        onClick={() => setEnableAutofill(opt.value)}
-                        className={`p-3.5 text-left border-2 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-between ${
-                          enableAutofill === opt.value
-                            ? "bg-bauhaus-yellow/10 border-bauhaus-yellow text-bauhaus-yellow brutal-shadow-sm"
-                            : "bg-surface-2 border-[#333] text-slate-400 hover:border-foreground hover:text-foreground"
-                        }`}
-                      >
-                        <span>{opt.label}</span>
-                        {enableAutofill === opt.value && <Check className="w-4.5 h-4.5 text-bauhaus-yellow shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Navigation Buttons */}
             <div className="flex items-center gap-3 mt-8 pt-4 border-t-2 border-[#333]">
               {step === 1 && userProfile && (
@@ -485,7 +363,7 @@ export default function QuestionnairePage() {
                 </button>
               )}
               
-              {step < 4 ? (
+              {step < 3 ? (
                 <button
                   type="button"
                   onClick={handleNext}

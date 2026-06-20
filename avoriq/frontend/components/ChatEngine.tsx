@@ -8,8 +8,9 @@ import { Scholarship } from "../types/scholarship";
 import { mockScholarships, indianStates } from "../data/scholarships";
 import ScholarshipCard from "./ScholarshipCard";
 import { useChatLimit } from "../hooks/useChatLimit";
-import { sendChatMessage, checkBackendHealth, fetchChatHistory, syncChatHistory, clearChatHistory } from "../lib/api";
+import { sendChatMessage, checkBackendHealth } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { useChat } from "../context/ChatContext";
 
 export interface ChatMessage {
   id: string;
@@ -28,59 +29,50 @@ interface ChatEngineProps {
 export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: ChatEngineProps) {
   const { isLimitReached, incrementMessageCount } = useChatLimit();
   const { userProfile, user } = useAuth();
+  const { threads, activeThreadId, updateThreadMessages } = useChat();
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      sender: "ai",
-      text: "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
-    },
-  ]);
+  
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loadedThreadId, setLoadedThreadId] = useState<string | null>(null);
+
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load chat history from PostgreSQL on mount / user change
+  // Check backend health on mount
   useEffect(() => {
-    checkBackendHealth().then(async (online) => {
+    checkBackendHealth().then((online) => {
       setIsBackendOnline(online);
-      
-      const initialText = online
+    });
+  }, []);
+
+  // Load messages when activeThreadId changes or when threads finish loading
+  useEffect(() => {
+    const activeThread = threads.find((t) => t.id === activeThreadId);
+    if (activeThread && activeThreadId !== loadedThreadId) {
+      const initialText = isBackendOnline
         ? "// AVORIQ TERMINAL v1.0\n// AI Scholarship Engine Connected.\n// Powered by Gemma 3 — ask me anything about scholarships."
         : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.";
-        
-      if (user) {
-        try {
-          const history = await fetchChatHistory(user.uid);
-          if (history && history.length > 0) {
-            // Clean up any hanging streaming indicators
-            const cleaned = history.map((m) => 
-              m.isStreaming ? { ...m, isStreaming: false } : m
-            );
-            setMessages(cleaned);
-          } else {
-            setMessages([{ id: "1", sender: "ai", text: initialText }]);
-          }
-        } catch (e) {
-          console.error("Failed to load chat history from DB:", e);
-          setMessages([{ id: "1", sender: "ai", text: initialText }]);
-        }
+
+      if (activeThread.messages.length > 0) {
+        setMessages(activeThread.messages);
       } else {
         setMessages([{ id: "1", sender: "ai", text: initialText }]);
       }
-    });
-  }, [user]);
+      setLoadedThreadId(activeThreadId);
+    }
+  }, [activeThreadId, threads, loadedThreadId, isBackendOnline]);
 
-  // Sync chat history to database when messages update
+  // Sync to context when local messages update
   useEffect(() => {
-    if (user && messages.length > 0) {
+    if (loadedThreadId === activeThreadId && messages.length > 0) {
       const isCurrentlyStreaming = messages.some((m) => m.isStreaming);
       if (!isCurrentlyStreaming) {
-        syncChatHistory(user.uid, messages);
+        updateThreadMessages(activeThreadId, messages);
       }
     }
-  }, [messages, user]);
+  }, [messages, activeThreadId, loadedThreadId, updateThreadMessages]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -304,7 +296,8 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
               fallbackToMock(userQuery);
             },
           },
-          activeScholarships
+          activeScholarships,
+          messages
         );
       } catch {
         // Network error — fall back to mock
@@ -332,7 +325,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
         {/* Reset Chat Button */}
         {messages.length > 1 && (
           <button
-            onClick={async () => {
+            onClick={() => {
               if (confirm("Are you sure you want to clear the chat history?")) {
                 const initialMsg: ChatMessage = {
                   id: "1",
@@ -342,9 +335,7 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
                     : "// AVORIQ TERMINAL v1.0\n// Scholarship Intelligence Module Active.\n// Type a query to begin matching.",
                 };
                 setMessages([initialMsg]);
-                if (user) {
-                  await clearChatHistory(user.uid);
-                }
+                updateThreadMessages(activeThreadId, []);
               }
             }}
             className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border border-bauhaus-red/30 text-bauhaus-red hover:bg-bauhaus-red hover:text-white transition-all cursor-pointer bg-background"

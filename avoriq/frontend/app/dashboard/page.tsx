@@ -27,6 +27,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { mockScholarships } from "../../data/scholarships";
+import { matchScholarship } from "../../utils/matcher";
 
 /* ═══════════════════════════════════════════
    HELPERS
@@ -48,31 +49,35 @@ function getFormattedDate(): string {
   });
 }
 
-/** Calculate profile calibration percentage */
-function getCalibration(profile: any): number {
-  if (!profile) return 0;
-  const fields = [
-    "name",
-    "educationLevel",
-    "gender",
-    "familyIncomeMax",
-    "state",
-    "caste",
-    "targetExam",
-    "careerInterest",
-  ];
-  let filled = 0;
-  for (const f of fields) {
-    if (profile[f] !== undefined && profile[f] !== null && profile[f] !== "") filled++;
-  }
-  return Math.round((filled / fields.length) * 100);
-}
+
 
 /** Get color class for readiness score */
 function getScoreColor(score: number): { ring: string; text: string; glow: string; bg: string } {
   if (score >= 70) return { ring: "#22C55E", text: "text-green-400", glow: "shadow-[0_0_40px_rgba(34,197,94,0.3)]", bg: "bg-green-500/10" };
   if (score >= 40) return { ring: "#EAB308", text: "text-yellow-400", glow: "shadow-[0_0_40px_rgba(234,179,8,0.3)]", bg: "bg-yellow-500/10" };
   return { ring: "#D92A2A", text: "text-red-400", glow: "shadow-[0_0_40px_rgba(217,42,42,0.3)]", bg: "bg-red-500/10" };
+}
+
+/** Parse Study Plan metadata from raw markdown output */
+function parseStudyPlan(planText: string) {
+  if (!planText) return null;
+  const meta: Record<string, string> = {};
+  const patterns = {
+    exam: /-\s*\*\*Target Exam\*\*:\s*(.*)/i,
+    subjects: /-\s*\*\*Subjects\*\*:\s*(.*)/i,
+    date: /-\s*\*\*Exam Date\*\*:\s*(.*)/i,
+    dailyHours: /-\s*\*\*Daily Available Study Hours\*\*:\s*(.*)/i,
+    confidence: /-\s*\*\*Current Confidence Level\*\*:\s*(.*)/i,
+  };
+
+  for (const [key, regex] of Object.entries(patterns)) {
+    const match = planText.match(regex);
+    if (match && match[1]) {
+      meta[key] = match[1].trim();
+    }
+  }
+
+  return Object.keys(meta).length > 0 ? meta : null;
 }
 
 /* ═══════════════════════════════════════════
@@ -203,6 +208,78 @@ const fieldQuestions: Record<string, { q: string; placeholder: string; options?:
   ]
 };
 
+/** Calculate profile calibration percentage (combining basic profile and dashboard calibration) */
+function getCalibration(profile: any, answers?: Record<string, string>): number {
+  if (!profile) return 0;
+  
+  const basicFields = [
+    "name",
+    "educationLevel",
+    "gender",
+    "familyIncomeMax",
+    "state",
+    "caste",
+  ];
+  
+  let filled = 0;
+  let total = 6 + 3; // 6 basic + 3 calibration questions (targetExam, careerInterest, enableAutofill)
+  
+  for (const f of basicFields) {
+    if (profile[f] !== undefined && profile[f] !== null && profile[f] !== "") filled++;
+  }
+  
+  const isCollege = profile.educationLevel === "UG" || profile.educationLevel === "PG";
+  if (isCollege) {
+    total += 2;
+    if (profile.collegeName) filled++;
+    if (profile.enrollmentNumber) filled++;
+  }
+  
+  let activeAnswers = answers;
+  if ((!activeAnswers || Object.keys(activeAnswers).length === 0) && typeof window !== "undefined") {
+    const storedAnswers = window.localStorage.getItem("avoriq_calibration_answers");
+    if (storedAnswers) {
+      try {
+        activeAnswers = JSON.parse(storedAnswers);
+      } catch {
+        // ignore
+      }
+    }
+  }
+  
+  if (activeAnswers && Object.keys(activeAnswers).length > 0) {
+    if (activeAnswers["0"]) filled++; // targetExam
+    if (activeAnswers["1"]) filled++; // careerInterest
+    if (activeAnswers["2"]) filled++; // enableAutofill
+    
+    const fieldOfStudy = getFieldOfStudy(profile, activeAnswers);
+    const qCount = fieldQuestions[fieldOfStudy]?.length || 5;
+    total += qCount;
+    for (let i = 0; i < qCount; i++) {
+      if (activeAnswers[String(i + 3)]?.trim()) {
+        filled++;
+      }
+    }
+  } else {
+    // If not calibrated, check if they exist under individual keys in localStorage
+    const uid = profile.uid || 'guest';
+    if (typeof window !== "undefined") {
+      const exam = window.localStorage.getItem(`avoriq_targetExam_${uid}`);
+      const career = window.localStorage.getItem(`avoriq_careerInterest_${uid}`);
+      const autofill = window.localStorage.getItem(`avoriq_enableAutofill_${uid}`);
+      if (exam) filled++;
+      if (career) filled++;
+      if (autofill) filled++;
+    }
+    
+    const fieldOfStudy = getFieldOfStudy(profile);
+    const qCount = fieldQuestions[fieldOfStudy]?.length || 5;
+    total += qCount;
+  }
+  
+  return Math.min(Math.round((filled / total) * 100), 100);
+}
+
 function generateCsv(profile: any, answers: Record<string, string>, field: string): string {
   const targetExam = answers["0"] || profile?.targetExam || "";
   const careerInterest = answers["1"] || profile?.careerInterest || "";
@@ -270,18 +347,18 @@ const featureModules = [
     title: "Career Navigator",
     desc: "Pathways from High School to Postgraduate with skills mapping.",
     icon: Compass,
-    href: "/chat",
+    href: "#",
     color: "#8B5CF6",
-    badge: "ACTIVE",
+    badge: "COMING SOON",
   },
   {
     id: "app-tracker",
     title: "Application Tracker",
     desc: "Track deadlines, auto-fill forms, and manage submissions.",
     icon: ClipboardList,
-    href: "/chat",
+    href: "#",
     color: "#06B6D4",
-    badge: "ACTIVE",
+    badge: "COMING SOON",
   },
   {
     id: "ai-chat",
@@ -309,8 +386,30 @@ function ReadinessRing({ score, size = 200 }: { score: number; size?: number }) 
   const [animatedScore, setAnimatedScore] = useState(0);
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimatedScore(score), 200);
-    return () => clearTimeout(timer);
+    let start = 0;
+    const end = score;
+    if (start === end) {
+      setAnimatedScore(end);
+      return;
+    }
+    
+    const duration = 1000;
+    const stepTime = 16;
+    const steps = duration / stepTime;
+    const increment = end / steps;
+    
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= end) {
+        clearInterval(timer);
+        setAnimatedScore(end);
+      } else {
+        setAnimatedScore(Math.round(current));
+      }
+    }, stepTime);
+    
+    return () => clearInterval(timer);
   }, [score]);
 
   const strokeDashoffset = circumference - (animatedScore / 100) * circumference;
@@ -376,6 +475,40 @@ function MetricCard({
   color: string;
   delay: number;
 }) {
+  const [displayValue, setDisplayValue] = useState<string | number>(typeof value === "number" ? 0 : value);
+
+  useEffect(() => {
+    if (typeof value !== "number") {
+      setDisplayValue(value);
+      return;
+    }
+    
+    let start = 0;
+    const end = value;
+    if (start === end) {
+      setDisplayValue(end);
+      return;
+    }
+    
+    const duration = 1000;
+    const stepTime = 16;
+    const steps = duration / stepTime;
+    const increment = end / steps;
+    
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= end) {
+        clearInterval(timer);
+        setDisplayValue(end);
+      } else {
+        setDisplayValue(Math.round(current));
+      }
+    }, stepTime);
+    
+    return () => clearInterval(timer);
+  }, [value]);
+
   return (
     <motion.div
       initial={{ y: 20, opacity: 0 }}
@@ -393,7 +526,7 @@ function MetricCard({
         <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: color }} />
       </div>
       <div className="text-2xl font-black text-foreground">
-        {value}
+        {displayValue}
         {suffix && <span className="text-sm font-bold text-slate-500 ml-0.5">{suffix}</span>}
       </div>
       <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
@@ -412,49 +545,67 @@ function FeatureCard({
   delay: number;
 }) {
   const Icon = module.icon;
+  const isComingSoon = module.badge === "COMING SOON";
+
+  const cardContent = (
+    <div className={`bg-surface border-2 border-[#333] p-6 h-full relative overflow-hidden transition-all duration-300 ${
+      isComingSoon 
+        ? "opacity-50 cursor-not-allowed select-none" 
+        : "hover:border-foreground/40 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_#F0F0F0] cursor-pointer"
+    }`}>
+      {/* Top accent line */}
+      <div
+        className={`absolute top-0 left-0 right-0 h-[3px] transition-opacity ${
+          isComingSoon ? "opacity-30" : "opacity-60 group-hover:opacity-100"
+        }`}
+        style={{ backgroundColor: module.color }}
+      />
+
+      {/* Badge */}
+      <div className="flex items-center justify-between mb-4">
+        <div
+          className="p-2.5 border-2 transition-colors"
+          style={{ borderColor: module.color + (isComingSoon ? "20" : "40"), color: module.color }}
+        >
+          <Icon className="w-5 h-5" />
+        </div>
+        <span
+          className="text-[8px] font-black uppercase tracking-widest px-2 py-1 border"
+          style={{ borderColor: module.color + (isComingSoon ? "20" : "40"), color: module.color }}
+        >
+          {module.badge}
+        </span>
+      </div>
+
+      <h3 className="text-foreground font-black text-sm uppercase tracking-wider mb-2 transition-colors">
+        {module.title}
+      </h3>
+      <p className="text-slate-500 text-xs font-medium leading-relaxed mb-4">
+        {module.desc}
+      </p>
+
+      {!isComingSoon && (
+        <div className="flex items-center gap-1 text-slate-500 group-hover:text-foreground transition-colors">
+          <span className="text-[10px] font-black uppercase tracking-widest">Launch</span>
+          <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <motion.div
       initial={{ y: 30, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay }}
     >
-      <Link href={module.href} className="block group">
-        <div className="bg-surface border-2 border-[#333] p-6 h-full relative overflow-hidden hover:border-foreground/40 transition-all duration-300 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_#F0F0F0] cursor-pointer">
-          {/* Top accent line */}
-          <div
-            className="absolute top-0 left-0 right-0 h-[3px] opacity-60 group-hover:opacity-100 transition-opacity"
-            style={{ backgroundColor: module.color }}
-          />
-
-          {/* Badge */}
-          <div className="flex items-center justify-between mb-4">
-            <div
-              className="p-2.5 border-2 transition-colors"
-              style={{ borderColor: module.color + "40", color: module.color }}
-            >
-              <Icon className="w-5 h-5" />
-            </div>
-            <span
-              className="text-[8px] font-black uppercase tracking-widest px-2 py-1 border"
-              style={{ borderColor: module.color + "40", color: module.color }}
-            >
-              {module.badge}
-            </span>
-          </div>
-
-          <h3 className="text-foreground font-black text-sm uppercase tracking-wider mb-2 group-hover:text-bauhaus-red transition-colors">
-            {module.title}
-          </h3>
-          <p className="text-slate-500 text-xs font-medium leading-relaxed mb-4">
-            {module.desc}
-          </p>
-
-          <div className="flex items-center gap-1 text-slate-500 group-hover:text-foreground transition-colors">
-            <span className="text-[10px] font-black uppercase tracking-widest">Launch</span>
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </div>
-      </Link>
+      {isComingSoon ? (
+        <div>{cardContent}</div>
+      ) : (
+        <Link href={module.href} className="block group">
+          {cardContent}
+        </Link>
+      )}
     </motion.div>
   );
 }
@@ -464,8 +615,29 @@ function FeatureCard({
    ═══════════════════════════════════════════ */
 
 export default function DashboardPage() {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, completeQuestionnaire } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [studyPlan, setStudyPlan] = useState<string | null>(null);
+  const [plannerMeta, setPlannerMeta] = useState<any | null>(null);
+
+  // Synchronize study plan state on mount/change and window storage updates
+  useEffect(() => {
+    const handleSync = () => {
+      const savedKey = user ? `avoriq_study_plan_${user.uid}` : "avoriq_study_plan_guest";
+      const savedPlan = localStorage.getItem(savedKey);
+      if (savedPlan) {
+        setStudyPlan(savedPlan);
+        setPlannerMeta(parseStudyPlan(savedPlan));
+      } else {
+        setStudyPlan(null);
+        setPlannerMeta(null);
+      }
+    };
+
+    handleSync();
+    window.addEventListener("storage", handleSync);
+    return () => window.removeEventListener("storage", handleSync);
+  }, [user]);
 
   const [weeklyData, setWeeklyData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [streak, setStreak] = useState<number>(0);
@@ -481,49 +653,67 @@ export default function DashboardPage() {
   useEffect(() => {
     setMounted(true);
 
-    const calibrated = localStorage.getItem("avoriq_field_calibrated") === "true";
-    setIsCalibrated(calibrated);
-
+    let calibrated = localStorage.getItem("avoriq_field_calibrated") === "true";
+    let answersObj: Record<string, string> = {};
     const storedAnswers = localStorage.getItem("avoriq_calibration_answers");
     if (storedAnswers) {
       try {
-        setCalibrationAnswers(JSON.parse(storedAnswers));
+        answersObj = JSON.parse(storedAnswers);
       } catch {
         // ignore
       }
     }
 
+    if (userProfile && userProfile.calibrationAnswers && Object.keys(userProfile.calibrationAnswers).length > 0) {
+      calibrated = true;
+      answersObj = userProfile.calibrationAnswers;
+      setCalibrationAnswers(userProfile.calibrationAnswers);
+      setIsCalibrated(true);
+    } else {
+      setIsCalibrated(calibrated);
+      setCalibrationAnswers(answersObj);
+    }
+
+    const hasProfile = userProfile && (userProfile.educationLevel || userProfile.gender || userProfile.state || userProfile.caste);
+
     // Load weekly study data
     const storedStudy = localStorage.getItem("avoriq_weekly_study");
+    let loadedStudy = null;
     if (storedStudy) {
       try {
-        setWeeklyData(JSON.parse(storedStudy));
+        loadedStudy = JSON.parse(storedStudy);
       } catch {
-        // Fall back to default
+        // ignore
       }
-    } else {
-      const defaultStudy = calibrated ? [3.5, 4.2, 2.8, 5.1, 4.7, 1.5, 3.9] : [0, 0, 0, 0, 0, 0, 0];
-      setWeeklyData(defaultStudy);
-      localStorage.setItem("avoriq_weekly_study", JSON.stringify(defaultStudy));
     }
+    // If study data is empty/zeros but user is calibrated or has a profile, initialize with mock active hours
+    if (!loadedStudy || loadedStudy.every((v: number) => v === 0)) {
+      if (calibrated || hasProfile) {
+        loadedStudy = [3.5, 4.2, 2.8, 5.1, 4.7, 1.5, 3.9];
+        localStorage.setItem("avoriq_weekly_study", JSON.stringify(loadedStudy));
+      } else {
+        loadedStudy = [0, 0, 0, 0, 0, 0, 0];
+      }
+    }
+    setWeeklyData(loadedStudy);
 
     // Load study streak
     const storedStreak = localStorage.getItem("avoriq_study_streak");
-    if (storedStreak) {
-      setStreak(parseInt(storedStreak, 10) || 0);
-    } else {
-      setStreak(calibrated ? 3 : 0);
+    let loadedStreak = storedStreak ? parseInt(storedStreak, 10) : 0;
+    if (!loadedStreak && (calibrated || hasProfile)) {
+      loadedStreak = 3;
+      localStorage.setItem("avoriq_study_streak", "3");
     }
+    setStreak(loadedStreak);
 
     // Load exam prep score
     const storedScore = localStorage.getItem("avoriq_exam_prep_score");
-    if (storedScore) {
-      setExamPrepScore(parseInt(storedScore, 10) || 0);
-    } else {
-      const initialScore = calibrated ? 80 : (userProfile?.targetExam ? 45 : 0);
-      setExamPrepScore(initialScore);
-      localStorage.setItem("avoriq_exam_prep_score", String(initialScore));
+    let loadedScore = storedScore ? parseInt(storedScore, 10) : 0;
+    if (!loadedScore && (calibrated || hasProfile)) {
+      loadedScore = userProfile?.targetExam ? 80 : 75;
+      localStorage.setItem("avoriq_exam_prep_score", String(loadedScore));
     }
+    setExamPrepScore(loadedScore);
 
     // Load saved scholarships ids (using same key 'avoriq_saved' as scholarships page)
     const storedSaved = localStorage.getItem("avoriq_saved");
@@ -536,7 +726,7 @@ export default function DashboardPage() {
     }
   }, [userProfile]);
 
-  const calibration = useMemo(() => getCalibration(userProfile), [userProfile]);
+  const calibration = useMemo(() => getCalibration(userProfile, calibrationAnswers), [userProfile, calibrationAnswers, isCalibrated]);
   const readinessScore = calibration;
   const scoreColors = getScoreColor(readinessScore);
   const maxStudy = Math.max(...weeklyData, 1);
@@ -556,12 +746,81 @@ export default function DashboardPage() {
       .slice(0, 3);
   }, [savedIds]);
 
-  const matchedCount = savedScholarships.length;
+  const matchedCount = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    
+    // Parse CSV data if it exists
+    const csvContent = window.localStorage.getItem("avoriq_calibration_csv");
+    let csvProfile: Record<string, string> = {};
+    if (csvContent) {
+      const lines = csvContent.split("\n");
+      lines.forEach((line) => {
+        const match = line.match(/^"([^"]+)"\s*,\s*"([^"]+)"$/) || line.match(/^([^,]+),([^,]*)$/);
+        if (match) {
+          const key = match[1].replace(/"/g, "").trim();
+          const val = match[2].replace(/"/g, "").trim();
+          csvProfile[key] = val;
+        }
+      });
+    }
+
+    const educationLevel = userProfile?.educationLevel || csvProfile["Education Level"] || "";
+    const gender = userProfile?.gender || csvProfile["Gender"] || "";
+    const familyIncome = Number(userProfile?.familyIncomeMax || csvProfile["Family Income Max"] || 0);
+    const state = userProfile?.state || csvProfile["State"] || "";
+    const caste = userProfile?.caste || csvProfile["Caste"] || "";
+    const careerInterest = userProfile?.careerInterest || csvProfile["Career Interest"] || "";
+
+    const getFieldOfStudy = (interest: string): string => {
+      if (!interest) return "Others";
+      if (interest.includes("Engineering") || interest.includes("IT")) return "Engineering";
+      if (interest.includes("Medicine") || interest.includes("Biotech")) return "Medical";
+      if (interest.includes("Science") || interest.includes("Research")) return "Science";
+      if (interest.includes("Business") || interest.includes("Management")) return "Management";
+      if (interest.includes("Arts") || interest.includes("Public")) return "Arts";
+      return "Others";
+    };
+    const fieldOfStudy = getFieldOfStudy(careerInterest || csvProfile["Field of Study"] || "");
+
+    if (!educationLevel && !gender && !state && !caste) {
+      return 0;
+    }
+
+    const profile = {
+      name: userProfile?.name || csvProfile["Name"] || "Student",
+      educationLevel: educationLevel === "Class 6–10" || educationLevel === "Class 11–12" || educationLevel === "Diploma" ? "High School" : educationLevel,
+      gender,
+      familyIncome,
+      familyIncomeCategory: familyIncome <= 100000 ? "Below ₹1 Lakh" : familyIncome <= 250000 ? "₹1–2.5 Lakhs" : familyIncome <= 500000 ? "₹2.5–5 Lakhs" : "Above ₹8 Lakhs",
+      state,
+      disabilityStatus: false,
+      minorityStatus: false,
+      caste,
+      fieldOfStudy,
+      interestCategory: "All",
+    };
+
+    return mockScholarships.filter((s) => {
+      try {
+        const matchesGender = s.eligibility.gender === "All" || s.eligibility.gender === profile.gender;
+        const matchesIncome = s.eligibility.familyIncomeMax === 0 || profile.familyIncome === 0 || profile.familyIncome <= s.eligibility.familyIncomeMax;
+        const matchesState = s.eligibility.states.some(st => ["All", "All India", "All Regions", "Other / Global", profile.state].includes(st)) ||
+                             s.eligibility.states.includes(profile.state);
+        const matchesEducation = s.eligibility.educationLevel.some(lvl => [profile.educationLevel, "All"].includes(lvl)) ||
+                                 (profile.educationLevel === "High School" && s.eligibility.educationLevel.some(lvl => ["Class 6–10", "Class 11–12", "Diploma"].includes(lvl)));
+        const matchesCaste = s.eligibility.castes.includes(profile.caste);
+        
+        return matchesGender && matchesIncome && matchesState && matchesEducation && matchesCaste;
+      } catch (err) {
+        return false;
+      }
+    }).length;
+  }, [userProfile]);
 
   // Calibration fields check
   const isFullyCalibrated = calibration >= 100;
 
-  const handleSaveCalibration = (answers: Record<string, string>) => {
+  const handleSaveCalibration = async (answers: Record<string, string>) => {
     const targetExam = answers["0"];
     const careerInterest = answers["1"];
     const autofillText = answers["2"];
@@ -588,11 +847,32 @@ export default function DashboardPage() {
     setWeeklyData(baselineStudy);
     setStreak(3);
     setExamPrepScore(80);
+    setCalibrationAnswers(answers);
     setIsCalibrated(true);
     setShowCalibrationModal(false);
+
+    if (user) {
+      const updatedProfile = {
+        ...userProfile,
+        name: userProfile?.name || userName,
+        educationLevel: userProfile?.educationLevel,
+        gender: userProfile?.gender,
+        familyIncomeMax: userProfile?.familyIncomeMax,
+        state: userProfile?.state,
+        caste: userProfile?.caste,
+        collegeName: userProfile?.collegeName,
+        enrollmentNumber: userProfile?.enrollmentNumber,
+        targetExam,
+        careerInterest,
+        enableAutofill,
+        calibrationAnswers: answers,
+        calibrationCsv: csvContent,
+      };
+      await completeQuestionnaire(updatedProfile);
+    }
   };
 
-  const handleResetCalibration = () => {
+  const handleResetCalibration = async () => {
     if (confirm("Reset calibration data? This will clear your custom study parameters.")) {
       const uid = userProfile?.uid || 'guest';
       localStorage.removeItem(`avoriq_targetExam_${uid}`);
@@ -610,6 +890,26 @@ export default function DashboardPage() {
       setExamPrepScore(0);
       setCalibrationAnswers({});
       setIsCalibrated(false);
+
+      if (user) {
+        const clearedProfile = {
+          ...userProfile,
+          name: userProfile?.name || userName,
+          educationLevel: userProfile?.educationLevel,
+          gender: userProfile?.gender,
+          familyIncomeMax: userProfile?.familyIncomeMax,
+          state: userProfile?.state,
+          caste: userProfile?.caste,
+          collegeName: userProfile?.collegeName,
+          enrollmentNumber: userProfile?.enrollmentNumber,
+          targetExam: null,
+          careerInterest: null,
+          enableAutofill: true,
+          calibrationAnswers: null,
+          calibrationCsv: null,
+        };
+        await completeQuestionnaire(clearedProfile);
+      }
     }
   };
 
@@ -683,12 +983,15 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <Link
-                    href="/questionnaire"
-                    className="px-5 py-2.5 bg-bauhaus-yellow text-background font-black text-[10px] uppercase tracking-widest border-2 border-bauhaus-yellow hover:bg-transparent hover:text-bauhaus-yellow transition-all shrink-0 brutal-shadow-yellow hover:translate-x-[-2px] hover:translate-y-[-2px]"
+                  <button
+                    onClick={() => {
+                      setCurrentQIndex(0);
+                      setShowCalibrationModal(true);
+                    }}
+                    className="px-5 py-2.5 bg-bauhaus-yellow text-background font-black text-[10px] uppercase tracking-widest border-2 border-bauhaus-yellow hover:bg-transparent hover:text-bauhaus-yellow transition-all shrink-0 brutal-shadow-yellow hover:translate-x-[-2px] hover:translate-y-[-2px] cursor-pointer"
                   >
                     Complete Setup
-                  </Link>
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -813,6 +1116,118 @@ export default function DashboardPage() {
             </div>
           )}
         </motion.div>
+
+        {/* ── Active AI Study Plan Widget ── */}
+        {plannerMeta ? (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.08 }}
+            className="bg-surface border-2 border-foreground p-6 mb-8 relative brutal-shadow hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_#F0F0F0] transition-all"
+          >
+            {/* Header */}
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-[#333] pb-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 border-2 border-accent-emerald text-accent-emerald bg-accent-emerald/5">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-foreground font-black text-xs uppercase tracking-widest">
+                    Active Study Roadmap
+                  </h3>
+                  <p className="text-slate-500 text-[10px] uppercase font-bold mt-1">
+                    Goal Exam: <span className="text-white font-black">{plannerMeta.exam || "N/A"}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Countdown badge */}
+              {plannerMeta.date && (() => {
+                const daysLeft = Math.ceil((new Date(plannerMeta.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                return (
+                  <div className={`px-3 py-1.5 border-2 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                    daysLeft > 30 
+                      ? "border-accent-emerald text-accent-emerald bg-accent-emerald/5"
+                      : daysLeft > 0
+                      ? "border-bauhaus-yellow text-bauhaus-yellow bg-bauhaus-yellow/5"
+                      : "border-bauhaus-red text-bauhaus-red bg-bauhaus-red/5"
+                  }`}>
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{daysLeft > 0 ? `${daysLeft} Days Remaining` : daysLeft === 0 ? "Exam Day Today!" : "Exam Completed"}</span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-[#333] text-xs font-bold uppercase tracking-wider text-slate-500 mb-6 bg-surface-2">
+              <div className="p-4 border-b sm:border-b-0 sm:border-r border-[#333]">
+                <span className="text-[9px] text-slate-600 block mb-1">Subjects to cover</span>
+                <span className="text-foreground font-black text-xs line-clamp-1">{plannerMeta.subjects || "N/A"}</span>
+              </div>
+              <div className="p-4 border-b sm:border-b-0 sm:border-r border-[#333]">
+                <span className="text-[9px] text-slate-600 block mb-1">Daily Available Hours</span>
+                <span className="text-foreground font-black text-xs">{plannerMeta.dailyHours || "N/A"}</span>
+              </div>
+              <div className="p-4">
+                <span className="text-[9px] text-slate-600 block mb-1">Current Confidence</span>
+                <span className="text-bauhaus-yellow font-black text-xs">{plannerMeta.confidence ? `${plannerMeta.confidence} / 10` : "N/A"}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3 justify-end items-center">
+              <Link
+                href="/chat?planner=true"
+                className="px-5 py-2.5 bg-bauhaus-red text-white font-black text-[10px] uppercase tracking-widest border-2 border-bauhaus-red hover:bg-transparent hover:text-bauhaus-red transition-all brutal-shadow-sm hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_#D92A2A]"
+              >
+                View Full Study Plan
+              </Link>
+              <button
+                onClick={() => {
+                  if (confirm("Are you sure you want to reset your active study plan? This action cannot be undone.")) {
+                    const savedKey = user ? `avoriq_study_plan_${user.uid}` : "avoriq_study_plan_guest";
+                    localStorage.removeItem(savedKey);
+                    setStudyPlan(null);
+                    setPlannerMeta(null);
+                  }
+                }}
+                className="px-4 py-2.5 bg-surface-2 text-slate-400 font-black text-[10px] uppercase tracking-widest border-2 border-[#333] hover:border-bauhaus-red hover:text-bauhaus-red transition-all cursor-pointer"
+              >
+                Reset Plan
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.08 }}
+            className="bg-surface border-2 border-[#333] p-6 mb-8 relative hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)] transition-all"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="p-3 border-2 border-dashed border-[#444] text-slate-500">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-foreground font-black text-xs uppercase tracking-widest">
+                    No Active Study Plan
+                  </h3>
+                  <p className="text-slate-500 text-[10px] font-bold mt-1 max-w-xl uppercase tracking-wider leading-relaxed">
+                    Build a realistic, structured, week-by-week daily schedule and exam milestones customized to your target exam and prep status.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/chat?planner=true"
+                className="px-5 py-3 bg-foreground text-background font-black text-[10px] uppercase tracking-widest border-2 border-foreground hover:bg-transparent hover:text-foreground transition-all brutal-shadow-sm hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_#F0F0F0] text-center shrink-0"
+              >
+                Create Study Plan
+              </Link>
+            </div>
+          </motion.div>
+        )}
 
         {/* ── Readiness + Metrics Row ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">

@@ -57,3 +57,13 @@ async def init_db():
             await conn.execute(text("ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS chat_id VARCHAR DEFAULT 'default'"))
         except Exception:
             pass
+
+        # Failsafe migrations: Add calibration columns to user_profiles if missing
+        try:
+            await conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS target_exam VARCHAR"))
+            await conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS career_interest VARCHAR"))
+            await conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS enable_autofill BOOLEAN DEFAULT TRUE"))
+            await conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS calibration_answers JSON"))
+            await conn.execute(text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS calibration_csv TEXT"))
+        except Exception:
+            pass

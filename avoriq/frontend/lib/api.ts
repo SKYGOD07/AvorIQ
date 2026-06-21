@@ -94,13 +94,18 @@ export async function sendChatMessage(
   history?: any[] | null,
   fileBase64?: string | null,
   fileName?: string | null,
-  fileType?: string | null
+  fileType?: string | null,
+  systemPrompt?: string | null
 ): Promise<void> {
   try {
     const body: Record<string, unknown> = {
       message,
       stream: true,
     };
+
+    if (systemPrompt) {
+      body.system_prompt = systemPrompt;
+    }
 
     if (profile) {
       body.profile = {
@@ -119,10 +124,18 @@ export async function sendChatMessage(
     if (history) {
       // Filter out welcome message (id === "1") and only take last 10 messages for LLM context
       const filtered = history.filter((h) => h.id !== "1" && !h.isStreaming).slice(-10);
-      body.history = filtered.map((h) => ({
-        role: h.sender === "user" ? "user" : "assistant",
-        content: h.text,
-      }));
+      body.history = filtered.map((h) => {
+        if (h && typeof h === "object" && "role" in h && "content" in h) {
+          return {
+            role: h.role,
+            content: h.content || "",
+          };
+        }
+        return {
+          role: h.sender === "user" ? "user" : "assistant",
+          content: h.text || "",
+        };
+      });
     }
 
     if (fileBase64) {
@@ -267,6 +280,11 @@ export async function saveUserProfile(
         caste: profileData.caste,
         collegeName: profileData.collegeName,
         enrollmentNumber: profileData.enrollmentNumber,
+        targetExam: profileData.targetExam,
+        careerInterest: profileData.careerInterest,
+        enableAutofill: profileData.enableAutofill,
+        calibrationAnswers: profileData.calibrationAnswers,
+        calibrationCsv: profileData.calibrationCsv,
       }),
     });
     return res.ok;

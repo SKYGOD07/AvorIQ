@@ -393,8 +393,9 @@ async def chat(
     if request.file_base64:
         intent_hint += "\n\nNote: The student has attached a file. You are operating in HYBRID RAG mode: you should analyze and answer questions about the attached document/image contents alongside any database scholarships."
 
+    sys_prompt = request.system_prompt if request.system_prompt else (SYSTEM_PROMPT + intent_hint)
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT + intent_hint},
+        {"role": "system", "content": sys_prompt},
     ]
 
     if request.history:

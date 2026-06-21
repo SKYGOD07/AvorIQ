@@ -3,7 +3,7 @@ AvorIQ Backend — SQLAlchemy ORM Models
 Maps the Scholarship TypeScript interface to a PostgreSQL table with pgvector embeddings.
 """
 
-from sqlalchemy import Column, String, Integer, Float, Text, JSON
+from sqlalchemy import Column, String, Integer, Float, Text, JSON, Boolean
 from pgvector.sqlalchemy import Vector
 from app.database import Base
 
@@ -81,9 +81,15 @@ class UserProfileDB(Base):
     caste = Column(String, nullable=True)
     college_name = Column(String, nullable=True)
     enrollment_number = Column(String, nullable=True)
+    target_exam = Column(String, nullable=True)
+    career_interest = Column(String, nullable=True)
+    enable_autofill = Column(Boolean, nullable=True, default=True)
+    calibration_answers = Column(JSON, nullable=True)
+    calibration_csv = Column(Text, nullable=True)
 
     def to_dict(self):
         return {
+            "uid": self.uid,
             "name": self.name,
             "educationLevel": self.education_level,
             "gender": self.gender,
@@ -92,6 +98,11 @@ class UserProfileDB(Base):
             "caste": self.caste,
             "collegeName": self.college_name,
             "enrollmentNumber": self.enrollment_number,
+            "targetExam": self.target_exam,
+            "careerInterest": self.career_interest,
+            "enableAutofill": self.enable_autofill,
+            "calibrationAnswers": self.calibration_answers,
+            "calibrationCsv": self.calibration_csv,
         }
 
 

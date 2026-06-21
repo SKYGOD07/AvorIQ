@@ -52,6 +52,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isQuestionnaireCompleted]);
 
+  // Sync database profile calibration data to localStorage on userProfile change
+  useEffect(() => {
+    if (userProfile && typeof window !== "undefined") {
+      const uid = userProfile.uid || user?.uid || 'guest';
+      if (userProfile.calibrationAnswers && Object.keys(userProfile.calibrationAnswers).length > 0) {
+        window.localStorage.setItem("avoriq_field_calibrated", "true");
+        window.localStorage.setItem("avoriq_calibration_answers", JSON.stringify(userProfile.calibrationAnswers));
+        if (userProfile.calibrationCsv) {
+          window.localStorage.setItem("avoriq_calibration_csv", userProfile.calibrationCsv);
+        }
+        if (userProfile.targetExam) window.localStorage.setItem(`avoriq_targetExam_${uid}`, userProfile.targetExam);
+        if (userProfile.careerInterest) window.localStorage.setItem(`avoriq_careerInterest_${uid}`, userProfile.careerInterest);
+        window.localStorage.setItem(`avoriq_enableAutofill_${uid}`, String(userProfile.enableAutofill ?? true));
+      } else {
+        // Clear local storage calibration if not calibrated in DB (e.g. after reset)
+        window.localStorage.removeItem("avoriq_field_calibrated");
+        window.localStorage.removeItem("avoriq_calibration_answers");
+        window.localStorage.removeItem("avoriq_calibration_csv");
+      }
+    }
+  }, [userProfile, user]);
+
   useEffect(() => {
     if (!isFirebaseConfigured) {
       if (typeof window !== "undefined") {

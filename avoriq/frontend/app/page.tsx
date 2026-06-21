@@ -123,11 +123,11 @@ const educationalModules = [
   {
     title: "CAREER NAVIGATOR",
     desc: "Pathways from High School to Postgraduate with skills mapping.",
-    phase: "LIVE",
-    badge: "ACTIVE",
+    phase: "COMING SOON",
+    badge: "COMING SOON",
     icon: Compass,
-    active: true,
-    href: "/chat",
+    active: false,
+    href: "#",
   },
   {
     title: "SCHOLARSHIP MATCHER",

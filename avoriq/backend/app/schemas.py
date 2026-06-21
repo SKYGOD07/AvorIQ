@@ -67,6 +67,11 @@ class StudentProfileSchema(BaseModel):
     caste: Optional[str] = None
     collegeName: Optional[str] = None
     enrollmentNumber: Optional[str] = None
+    targetExam: Optional[str] = None
+    careerInterest: Optional[str] = None
+    enableAutofill: Optional[bool] = True
+    calibrationAnswers: Optional[dict] = None
+    calibrationCsv: Optional[str] = None
 
 
 # ── Chat Schemas ──
@@ -86,6 +91,7 @@ class ChatRequest(BaseModel):
     file_base64: Optional[str] = None
     file_name: Optional[str] = None
     file_type: Optional[str] = None
+    system_prompt: Optional[str] = None
 
 
 class ChatResponse(BaseModel):

@@ -63,6 +63,17 @@ export default function ChatEngine({ onOpenDetails, savedIds, onToggleSave }: Ch
     }
   }, [activeThreadId, threads, isBackendOnline]);
 
+  // Read and inject pending query from other pages
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pendingQuery = window.localStorage.getItem("avoriq_pending_chat_query");
+      if (pendingQuery) {
+        window.localStorage.removeItem("avoriq_pending_chat_query");
+        setInputValue(pendingQuery);
+      }
+    }
+  }, [activeThreadId]);
+
   // Sync local messages back to context when streaming finishes
   useEffect(() => {
     const isCurrentlyStreaming = messages.some((m) => m.isStreaming);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { 
   MessageSquare, 
@@ -50,6 +50,69 @@ export default function ChatLayout({
     loading
   } = useChat();
 
+  const [showPlannerChat, setShowPlannerChat] = useState(false);
+  const [plannerMessages, setPlannerMessages] = useState<any[]>([]);
+  const [plannerInput, setPlannerInput] = useState("");
+  const plannerChatEndRef = useRef<HTMLDivElement>(null);
+
+  const STUDY_PLANNER_SYSTEM_PROMPT = `You are the AvorIQ AI Study Planner.
+Your job is NOT to immediately create a study plan.
+Your first responsibility is to understand the student completely by asking questions one-by-one in a conversational format.
+Never ask all questions at once. Ask only ONE question at a time and wait for the student's response.
+
+You must collect the following 11 pieces of information:
+1. Target Exam (e.g. JEE, NEET, UPSC, Board Exams, CAT)
+2. Subjects to cover
+3. Exam Date
+4. Syllabus Status (% Completed)
+5. Strong Subjects
+6. Weak Subjects
+7. Daily Available Study Hours
+8. Preferred Study Time (e.g. morning, night, afternoon)
+9. Learning Style (e.g. visual, problem-solving, reading theory)
+10. Current Confidence Level (1-10)
+11. Backlogs (if any)
+
+RULES:
+- Be warm, encouraging, and supportive.
+- Ask exactly ONE question at a time.
+- If the user's response is vague, ask a polite follow-up.
+- Keep track of the collected information.
+- Once (and ONLY once) you have collected all 11 pieces of information, write exactly: "Excellent! I have all the information needed to build your personalized study roadmap. Let me generate it for you now." followed immediately by the final personalized study plan.
+
+The final study plan MUST strictly use the following output format:
+# Student Overview
+- **Target Exam**: [Exam Name]
+- **Subjects**: [Subjects list]
+- **Exam Date**: [Date in YYYY-MM-DD format]
+- **Syllabus Status**: [Syllabus Status %]
+- **Strong Subjects**: [Strong Subjects]
+- **Weak Subjects**: [Weak Subjects]
+- **Daily Available Study Hours**: [Daily Hours]
+- **Preferred Study Time**: [Preferred Study Time]
+- **Learning Style**: [Learning Style]
+- **Current Confidence Level**: [Confidence Level 1-10]
+- **Backlogs**: [Backlogs]
+
+# Daily Study Plan
+[Provide a realistic, practical daily study schedule based on preferred study time and available hours]
+
+# Weekly Roadmap
+[Provide a week-by-week plan breaking down subjects, chapters, and goals]
+
+# Subject Strategy
+[Provide a plan highlighting how to balance strong and weak subjects]
+
+# Revision Plan
+[Provide a structured method to review concepts and retain knowledge]
+
+# Monthly Milestones
+[Provide long-term goals leading up to the exam date]
+
+# Success Metrics
+[Provide practical ways for the student to track daily and weekly progress, including confidence level benchmarks]
+`;
+
   // Load saved study plan on mount/user change
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -57,8 +120,17 @@ export default function ChatLayout({
       const savedPlan = window.localStorage.getItem(savedKey);
       if (savedPlan) {
         setPlannerOutput(savedPlan);
+        setShowPlannerChat(false);
       } else {
         setPlannerOutput("");
+        setShowPlannerChat(true);
+        setPlannerMessages([
+          {
+            id: "initial",
+            sender: "ai",
+            text: "Hello! I am your AvorIQ AI Study Planner. I'm here to build a realistic, practical, and highly personalized study roadmap for you.\n\nTo start, **which exam are you preparing for?**",
+          },
+        ]);
       }
     }
   }, [user]);
@@ -75,52 +147,111 @@ export default function ChatLayout({
     }
   }, []);
 
-  const generateStudyPlan = async () => {
+  // Auto scroll planner chat
+  useEffect(() => {
+    if (showPlannerChat) {
+      plannerChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [plannerMessages, showPlannerChat]);
+
+  const sendPlannerMessage = async () => {
+    if (!plannerInput.trim() || isGeneratingPlanner) return;
+
+    const userMsgText = plannerInput.trim();
+    const userMsgId = Date.now().toString();
+    const newUserMessage = { id: userMsgId, sender: "user", text: userMsgText };
+    
+    const updatedMessages = [...plannerMessages, newUserMessage];
+    setPlannerMessages(updatedMessages);
+    setPlannerInput("");
     setIsGeneratingPlanner(true);
     setPlannerError(null);
-    setPlannerOutput("");
-    let accumulatedText = "";
+
+    const aiMsgId = (Date.now() + 1).toString();
+    let streamedText = "";
+
+    // Append streaming message placeholder
+    setPlannerMessages((prev) => [
+      ...prev,
+      { id: aiMsgId, sender: "ai", text: "", isStreaming: true },
+    ]);
 
     try {
-      const csvData = window.localStorage.getItem("avoriq_calibration_csv");
-      let message = "Based on my student profile, generate a structured, actionable study plan and resource suggestions for me. Provide a weekly breakdown, recommended topics, and study strategies.";
-      if (csvData) {
-        message = `[STUDENT CALIBRATION PARAMETERS (CSV FORMAT):\n${csvData}\n]\n\nBased on these calibration parameters, generate a highly customized study plan, weekly roadmap, and specific learning resources for me.`;
-      } else if (userProfile) {
-        message = `Based on my student profile (Academic Level: ${userProfile.educationLevel || "Student"}, Region: ${userProfile.state || "India"}), generate a customized study plan and recommended topics for me.`;
-      }
+      const historyPayload = updatedMessages
+        .filter((m) => m.id !== "initial")
+        .map((m) => ({
+          role: m.sender === "user" ? "user" : "assistant",
+          content: m.text,
+        }));
 
       await sendChatMessage(
-        message,
-        userProfile ? {
-          educationLevel: userProfile.educationLevel,
-          gender: userProfile.gender,
-          familyIncomeMax: userProfile.familyIncomeMax,
-          state: userProfile.state,
-          caste: userProfile.caste,
-        } : null,
+        userMsgText,
+        null,
         {
           onScholarships: () => {},
           onToken: (token) => {
-            accumulatedText += token;
-            setPlannerOutput(accumulatedText);
+            streamedText += token;
+            setPlannerMessages((prev) =>
+              prev.map((m) =>
+                m.id === aiMsgId ? { ...m, text: streamedText } : m
+              )
+            );
           },
           onDone: () => {
+            setPlannerMessages((prev) =>
+              prev.map((m) =>
+                m.id === aiMsgId ? { ...m, isStreaming: false } : m
+              )
+            );
             setIsGeneratingPlanner(false);
-            if (typeof window !== "undefined") {
-              const savedKey = user ? `avoriq_study_plan_${user.uid}` : "avoriq_study_plan_guest";
-              window.localStorage.setItem(savedKey, accumulatedText);
+
+            if (
+              streamedText.includes("# Student Overview") ||
+              streamedText.includes("# Daily Study Plan") ||
+              streamedText.includes("Success Metrics")
+            ) {
+              setPlannerOutput(streamedText);
+              setShowPlannerChat(false);
+              if (typeof window !== "undefined") {
+                const savedKey = user ? `avoriq_study_plan_${user.uid}` : "avoriq_study_plan_guest";
+                window.localStorage.setItem(savedKey, streamedText);
+                window.dispatchEvent(new Event("storage"));
+              }
             }
           },
           onError: (err) => {
             setPlannerError(err);
             setIsGeneratingPlanner(false);
-          }
-        }
+            setPlannerMessages((prev) => prev.filter((m) => m.id !== aiMsgId));
+          },
+        },
+        null,
+        historyPayload,
+        null,
+        null,
+        null,
+        STUDY_PLANNER_SYSTEM_PROMPT
       );
     } catch (err: any) {
-      setPlannerError(err.message || "Failed to generate study plan.");
+      setPlannerError(err.message || "Failed to contact study planner service.");
       setIsGeneratingPlanner(false);
+      setPlannerMessages((prev) => prev.filter((m) => m.id !== aiMsgId));
+    }
+  };
+
+  const resetStudyPlanner = () => {
+    if (confirm("Are you sure you want to reset your study planner? This will delete your current active plan.")) {
+      const savedKey = user ? `avoriq_study_plan_${user.uid}` : "avoriq_study_plan_guest";
+      window.localStorage.removeItem(savedKey);
+      setPlannerOutput("");
+      setShowPlannerChat(true);
+      setPlannerMessages([
+        {
+          id: "initial",
+          sender: "ai",
+          text: "Hello! I am your AvorIQ AI Study Planner. I'm here to build a realistic, practical, and highly personalized study roadmap for you.\n\nTo start, **which exam are you preparing for?**",
+        },
+      ]);
     }
   };
 
@@ -144,12 +275,6 @@ export default function ChatLayout({
       console.error("Failed to download study plan:", err);
     }
   };
-
-  useEffect(() => {
-    if (showStudyPlanner && !plannerOutput && !isGeneratingPlanner) {
-      generateStudyPlan();
-    }
-  }, [showStudyPlanner]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -321,72 +446,120 @@ export default function ChatLayout({
               )}
 
               {/* Content Panel */}
-              <div className="flex-1 overflow-y-auto p-6 bg-surface-2 border-2 border-foreground text-slate-300 font-sans text-sm leading-relaxed min-h-[350px] max-h-[55vh] rounded-none brutal-shadow-sm scrollbar-hide space-y-4">
-                {plannerOutput ? (
-                  parseMarkdown(plannerOutput)
-                ) : isGeneratingPlanner ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-6">
-                    <div className="flex gap-2 items-center justify-center h-8">
-                      {[0, 1, 2, 3, 4].map((i) => (
-                        <motion.div
-                          key={i}
-                          className="w-3.5 h-6 bg-bauhaus-red brutal-shadow-xs"
-                          animate={{ opacity: [0.15, 1, 0.15], scaleY: [0.8, 1.2, 0.8] }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 1,
-                            delay: i * 0.12,
-                            ease: "easeInOut",
-                          }}
-                        />
+              <div className="flex-1 overflow-y-auto p-6 bg-surface-2 border-2 border-foreground text-slate-300 font-sans text-sm leading-relaxed min-h-[400px] max-h-[55vh] rounded-none brutal-shadow-sm scrollbar-hide flex flex-col justify-between">
+                {showPlannerChat ? (
+                  <div className="flex-1 flex flex-col justify-between overflow-hidden h-full min-h-[350px]">
+                    {/* Chat Messages */}
+                    <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-hide pb-4 max-h-[38vh]">
+                      {plannerMessages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`flex gap-3 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                        >
+                          {msg.sender === "ai" && (
+                            <div className="w-7 h-7 bg-bauhaus-red text-white flex items-center justify-center shrink-0 font-black text-xs">
+                              AI
+                            </div>
+                          )}
+                          <div
+                            className={`px-4 py-2.5 text-xs leading-relaxed max-w-[85%] border-2 ${
+                              msg.sender === "user"
+                                ? "bg-surface-3 border-foreground/30 text-slate-200 font-sans"
+                                : "bg-surface border-[#333] text-slate-300 font-sans whitespace-pre-line"
+                            }`}
+                          >
+                            {msg.text}
+                            {msg.isStreaming && (
+                              <span className="inline-block ml-1 animate-pulse text-bauhaus-red">█</span>
+                            )}
+                          </div>
+                          {msg.sender === "user" && (
+                            <div className="w-7 h-7 bg-foreground text-background flex items-center justify-center shrink-0 font-black text-xs">
+                              U
+                            </div>
+                          )}
+                        </div>
                       ))}
+                      {isGeneratingPlanner && !plannerMessages.some((m) => m.isStreaming) && (
+                        <div className="flex gap-3 justify-start">
+                          <div className="w-7 h-7 bg-bauhaus-red text-white flex items-center justify-center shrink-0 font-black text-xs">
+                            AI
+                          </div>
+                          <div className="flex flex-col gap-1 px-2 font-mono text-[10px] text-bauhaus-red font-bold">
+                            <div className="flex items-center gap-1.5">
+                              <span className="animate-pulse text-lg">●</span>
+                              <span>Thinking...</span>
+                            </div>
+                            <div className="text-slate-500 font-sans font-medium text-[9px] uppercase tracking-wider">
+                              {plannerMessages.filter((m) => m.sender === "user").length >= 10
+                                ? "Making the best study plan for you... please be patient!"
+                                : "Processing your response..."}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {plannerError && (
+                        <div className="text-bauhaus-red font-bold p-3 bg-bauhaus-red/10 border border-bauhaus-red uppercase text-xs">
+                          Error: {plannerError}
+                        </div>
+                      )}
+                      <div ref={plannerChatEndRef} />
                     </div>
-                    <div className="flex flex-col items-center gap-2 text-center">
-                      <span className="font-mono text-xs uppercase tracking-widest font-black text-slate-400 animate-pulse">Calibrating Study Roadmap...</span>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest max-w-xs leading-relaxed">
-                        Analyzing your calibration parameters to build the best study plan for you. Please be patient, this might take a moment.
-                      </span>
+
+                    {/* Chat Input */}
+                    <div className="pt-3 border-t border-[#333]/50 flex items-center gap-2 mt-auto">
+                      <input
+                        type="text"
+                        value={plannerInput}
+                        onChange={(e) => setPlannerInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            sendPlannerMessage();
+                          }
+                        }}
+                        placeholder="Type your answer here..."
+                        disabled={isGeneratingPlanner}
+                        className="flex-1 bg-surface border-2 border-[#333] focus:border-bauhaus-red focus:outline-none px-4 py-3 text-xs text-foreground font-mono placeholder:text-slate-600"
+                      />
+                      <button
+                        onClick={sendPlannerMessage}
+                        disabled={!plannerInput.trim() || isGeneratingPlanner}
+                        className={`px-5 py-3 border-2 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                          (plannerInput.trim() && !isGeneratingPlanner)
+                            ? "bg-bauhaus-red text-white border-bauhaus-red hover:bg-transparent hover:text-bauhaus-red"
+                            : "bg-surface border-[#333] text-slate-600 cursor-not-allowed"
+                        }`}
+                      >
+                        Send
+                      </button>
                     </div>
-                  </div>
-                ) : plannerError ? (
-                  <div className="text-bauhaus-red font-bold p-4 bg-bauhaus-red/10 border-2 border-bauhaus-red uppercase tracking-wider text-xs">
-                    Error generating plan: {plannerError}
                   </div>
                 ) : (
-                  <div className="text-slate-500 italic py-10 text-center">
-                    Ready to generate study recommendations.
+                  <div className="space-y-4">
+                    {plannerOutput ? (
+                      parseMarkdown(plannerOutput)
+                    ) : (
+                      <div className="text-slate-500 italic py-10 text-center">
+                        No study plan generated yet.
+                      </div>
+                    )}
                   </div>
-                )}
-                {isGeneratingPlanner && (
-                  <span className="inline-block ml-1 animate-pulse text-bauhaus-red">█</span>
                 )}
               </div>
 
               {/* Actions */}
               <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  onClick={generateStudyPlan}
-                  disabled={isGeneratingPlanner}
-                  className={`flex-1 min-w-[140px] py-3 text-xs font-black uppercase tracking-widest border-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                    isGeneratingPlanner
-                      ? "bg-surface-2 border-[#333] text-slate-500 cursor-not-allowed"
-                      : "bg-bauhaus-red text-white border-bauhaus-red hover:bg-transparent hover:text-bauhaus-red"
-                  }`}
-                >
-                  {isGeneratingPlanner ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-background rounded-full animate-ping" />
-                      Generating...
-                    </span>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-4 h-4" />
-                      Regenerate
-                    </>
-                  )}
-                </button>
+                {!showPlannerChat && (
+                  <button
+                    onClick={resetStudyPlanner}
+                    className="flex-1 min-w-[140px] py-3 bg-bauhaus-red text-white border-2 border-bauhaus-red hover:bg-transparent hover:text-bauhaus-red text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    New Study Plan
+                  </button>
+                )}
 
-                {plannerOutput && !isGeneratingPlanner && (
+                {plannerOutput && !showPlannerChat && (
                   <button
                     onClick={downloadStudyPlan}
                     className="flex-1 min-w-[140px] py-3 bg-accent-emerald text-white border-2 border-accent-emerald hover:bg-transparent hover:text-accent-emerald text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
@@ -590,8 +763,23 @@ export default function ChatLayout({
              >
                <History className={`w-5 h-5 transition-colors ${isSidebarOpen ? "text-accent-blue" : "text-slate-400"}`} />
              </button>
-             <Link href="/" className="flex items-center gap-2 ml-1">
-                <span className="font-bold text-lg tracking-tight">Avor<span className="text-accent-purple">IQ</span></span>
+             <Link href="/" className="flex items-center gap-2.5 ml-1 group">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 64 64"
+                  className="w-7 h-7 shrink-0"
+                >
+                  <polygon
+                    points="32,6 6,58 22,58 28,44 36,44 42,58 58,58"
+                    fill="#D92A2A"
+                  />
+                  <polygon points="32,22 26,40 38,40" fill="#0A0A0A" />
+                  <circle cx="50" cy="14" r="10" fill="#EAB308" />
+                  <circle cx="50" cy="14" r="4" fill="#0A0A0A" />
+                </svg>
+                <span className="text-foreground font-black text-sm uppercase tracking-wider select-none">
+                  AVOR<span className="text-bauhaus-red">IQ</span>
+                </span>
              </Link>
           </div>
           
@@ -599,7 +787,7 @@ export default function ChatLayout({
              {/* Model Selector Mock */}
              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-slate-300">
                 <Sparkles className="w-3.5 h-3.5 text-accent-blue" />
-                AvorIQ v4.2
+                AvorIQ
              </div>
           </div>
         </header>

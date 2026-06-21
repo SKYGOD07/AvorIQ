@@ -24,6 +24,11 @@ class ProfileUpdate(BaseModel):
     caste: str | None = None
     collegeName: str | None = None
     enrollmentNumber: str | None = None
+    targetExam: str | None = None
+    careerInterest: str | None = None
+    enableAutofill: bool | None = True
+    calibrationAnswers: dict | None = None
+    calibrationCsv: str | None = None
 
 
 class ChatMessageModel(BaseModel):
@@ -63,6 +68,11 @@ async def save_profile(uid: str, profile_data: ProfileUpdate, db: AsyncSession =
         profile.caste = profile_data.caste
         profile.college_name = profile_data.collegeName
         profile.enrollment_number = profile_data.enrollmentNumber
+        profile.target_exam = profile_data.targetExam
+        profile.career_interest = profile_data.careerInterest
+        profile.enable_autofill = profile_data.enableAutofill
+        profile.calibration_answers = profile_data.calibrationAnswers
+        profile.calibration_csv = profile_data.calibrationCsv
     else:
         profile = UserProfileDB(
             uid=uid,
@@ -74,7 +84,12 @@ async def save_profile(uid: str, profile_data: ProfileUpdate, db: AsyncSession =
             state=profile_data.state,
             caste=profile_data.caste,
             college_name=profile_data.collegeName,
-            enrollment_number=profile_data.enrollmentNumber
+            enrollment_number=profile_data.enrollmentNumber,
+            target_exam=profile_data.targetExam,
+            career_interest=profile_data.careerInterest,
+            enable_autofill=profile_data.enableAutofill,
+            calibration_answers=profile_data.calibrationAnswers,
+            calibration_csv=profile_data.calibrationCsv
         )
         db.add(profile)
         
